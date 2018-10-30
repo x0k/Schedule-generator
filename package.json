@@ -1,0 +1,11 @@
+{
+  "name": "shedule-generator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "bild": "tsc index.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
