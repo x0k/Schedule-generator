@@ -1,5 +1,6 @@
-import DateTime from './DateTime';
-import EventProvider from './EventProvider';
+import DateTime from './Events/DateTime';
+import { IHandler } from './Events/DateTimeEvent';
+import EventProvider from './Events/EventProvider';
 
 /*
         calls: {
@@ -39,43 +40,34 @@ import EventProvider from './EventProvider';
           },
         },
 */
-
-class Bilder {
-
-  private provider: EventProvider;
-
-  constructor () {
-    this.provider = new EventProvider();
-    this.provider.on('days', {
-      name: 'dayName',
+const provider = new EventProvider(),
+  begin = new Date(2018, 8, 1),
+  end = new Date(2018, 11, 29);
+provider.load({
+  days: [
+    {
+      name: 'numerator',
       require: [],
-      handler: (dt: DateTime) => {
-        const nm = () => {
-          switch (dt.day) {
-          case 1:
-            return 'Пн';
-          case 2:
-            return 'Вт';
-          case 3:
-            return 'Ср';
-          case 4:
-            return 'Чт';
-          case 5:
-            return 'Пт';
-          case 6:
-            return 'Сб';
-          default:
-            return 'Вс';
-          }
-        };
-        const val = nm();
-        console.log(val);
-        return val;
-      }
-    });
-    this.provider.start(new Date(2018, 8, 1), new Date(2018, 8, 9));
-  }
-
-}
-
-new Bilder();
+      handler: (dt: DateTime, values: any) => {
+        const date = new Date(begin),
+          day = date.getDay();
+        date.setDate(date.getDate() - (day > 1 ? day - 1 : day - 1));
+        const time = DateTime.getTimeBethwen(date, dt.toDate()),
+          weeks = DateTime.toWeeks(time);
+        return Math.floor(weeks)  % 2 === 0;
+      },
+    },
+    {
+      name: 'denumerator',
+      require: ['numerator'],
+      handler: (dt: DateTime, values: any) => !values.numerator,
+    },
+    {
+      name: 'logger',
+      require: ['numerator', 'denumerator'],
+      handler: (dt: DateTime, values: any) =>
+        console.log(`${dt.date}.${dt.month} ${values.numerator ? 'числитель' : 'знаменатель'}`),
+    },
+  ],
+});
+provider.start(begin, end);

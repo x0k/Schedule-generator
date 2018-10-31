@@ -1,5 +1,38 @@
 export default class DateTime {
 
+  public static leapYear (year): boolean {
+    return ((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0);
+  }
+
+  public static getMonthLength (year: number, month: number) {
+    // tslint:disable-next-line:no-bitwise
+    return month === 2 ? year & 3 || !(year % 25) && year & 15 ? 28 : 29 : 30 + (month + (month >> 3) & 1);
+  }
+
+  public static getTimeBethwen (begin: Date, end: Date) {
+    return end.getTime() - begin.getTime();
+  }
+
+  public static toSeconds (milliseconds: number): number {
+    return milliseconds / 1000;
+  }
+
+  public static toMinutes (milliseconds: number): number {
+    return milliseconds / 60000;
+  }
+
+  public static toHours (milliseconds: number): number {
+    return milliseconds / 3600000;
+  }
+
+  public static toDays (milliseconds: number): number {
+    return milliseconds / 86400000;
+  }
+
+  public static toWeeks (milliseconds: number): number {
+    return milliseconds / 604800000;
+  }
+
   public year: number;
   public month: number; // 1-12
   public date: number; // 1-31
@@ -32,13 +65,8 @@ export default class DateTime {
     return this;
   }
 
-  private leapYear (year): boolean {
-    return ((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0);
-  }
-
-  private getMonthLength (year: number, month: number) {
-    // tslint:disable-next-line:no-bitwise
-    return month === 2 ? year & 3 || !(year % 25) && year & 15 ? 28 : 29 : 30 + (month + (month >> 3) & 1);
+  public toDate (): Date {
+    return new Date(this.year, this.month - 1, this.date, this.hours, this.minutes);
   }
 
   private addYear (level): void {
@@ -64,7 +92,7 @@ export default class DateTime {
       this.day = 1;
     }
     // Date
-    if (this.date < this.getMonthLength(this.year, this.month)) {
+    if (this.date < DateTime.getMonthLength(this.year, this.month)) {
       this.date++;
     } else {
       this.date = 1;
