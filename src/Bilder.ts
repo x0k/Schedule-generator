@@ -40,45 +40,42 @@ import EventProvider from './EventProvider';
         },
 */
 
-const numToDay = (num: number) => {
-  switch (num) {
-  case 1:
-    return 'Пн';
-  case 2:
-    return 'Вт';
-  case 3:
-    return 'Ср';
-  case 4:
-    return 'Чт';
-  case 5:
-    return 'Пт';
-  case 6:
-    return 'Сб';
-  default:
-    return 'Вс';
-  }
-};
-
 class Bilder {
 
   private provider: EventProvider;
 
   constructor () {
-    this.provider = new EventProvider(
-      new Date(2018, 8, 1),
-      new Date(2018, 11, 29),
-      {
-        days: [
-          {
-            handler: (dt: DateTime, values: object) => {
-              numToDay(dt.day);
-              return null;
-            },
-            name: 'dayName',
-          },
-        ],
-      },
-    );
+    this.provider = new EventProvider();
+    this.provider.on('days', {
+      name: 'dayName',
+      require: [],
+      handler: (dt: DateTime) => {
+        const nm = () => {
+          switch (dt.day) {
+          case 1:
+            return 'Пн';
+          case 2:
+            return 'Вт';
+          case 3:
+            return 'Ср';
+          case 4:
+            return 'Чт';
+          case 5:
+            return 'Пт';
+          case 6:
+            return 'Сб';
+          default:
+            return 'Вс';
+          }
+        };
+        const val = nm();
+        console.log(val);
+        return val;
+      }
+    });
+    this.provider.start(new Date(2018, 8, 1), new Date(2018, 8, 9));
   }
 
 }
+
+new Bilder();

@@ -49,11 +49,11 @@ export default class DateTime {
   private addMonth (level): void {
     if (this.month < 12) {
       this.month++;
-      level('months', this);
     } else {
       this.month = 1;
       this.addYear(level);
     }
+    level('months', this);
   }
 
   private addDate (level): void {
@@ -66,31 +66,31 @@ export default class DateTime {
     // Date
     if (this.date < this.getMonthLength(this.year, this.month)) {
       this.date++;
-      level('days', this);
     } else {
       this.date = 1;
       this.addMonth(level);
     }
+    level('days', this);
   }
 
   private addHours (level): void {
     if (this.hours < 23) {
       this.hours++;
-      level('hours', this);
     } else {
       this.hours = 0;
       this.addDate(level);
     }
+    level('hours', this);
   }
 
   private addMinute (level): void {
     if (this.minutes < 59) {
       this.minutes++;
-      level('minutes', this);
     } else {
       this.minutes = 0;
       this.addHours(level);
     }
+    level('minutes', this);
   }
 
 }

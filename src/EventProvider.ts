@@ -1,56 +1,69 @@
 import DateTime from './DateTime';
 
-interface IEvent {
+type THandler = (dateTime: DateTime, values: object) => any;
+
+type THandlersMap = { [name: string]: THandler };
+
+interface IHandler {
   name: string;
-  handler: (dateTime: DateTime, values: object) => any;
+  require: Array<string>;
+  handler: THandler;
 }
+
+interface IEvent {
+  order: Array<string>;
+  handlers: THandlersMap;
+}
+
+const EmptyEvent = (): IEvent => ({
+  order: [],
+  handlers: {}
+});
 
 export default class EventProvider {
 
-  private values: object = {};
-  private handlers: object = {};
+  private values: { [name: string]: any } = {};
+  private events: { [name: string]: IEvent } = {
+    minutes: EmptyEvent(),
+    hours: EmptyEvent(),
+    days: EmptyEvent(),
+    months: EmptyEvent(),
+    years: EmptyEvent()
+  };
 
-  constructor (private begin: Date, private end: Date, handlers: object) {
-    for (const name in handlers) {
-      if (handlers.hasOwnProperty(name)) {
-        for (const event of handlers[name]) {
-          this.addEvent(name, event);
-        }
-      }
-    }
-  }
-
-  public start () {
-    const self = this,
-      val = new DateTime(this.begin);
-    for (const name in this.handlers) {
-      if (this.handlers.hasOwnProperty(name)) {
+  public start (begin: Date, end: Date) {
+    const val = new DateTime(begin),
+      onChange = this.emit.bind(this);
+    for (const name in this.events) {
+      if (this.events.hasOwnProperty(name)) {
         this.emit(name, val);
       }
     }
-    while (val.before(this.end)) {
-      val.next(this.emit);
+    while (val.before(end)) {
+      val.next(onChange);
     }
   }
 
-  public addEvent (on: string, event: IEvent) {
-    const hdl = (dateTime: DateTime, values: object) => {
-      const val = event.handler(dateTime, values);
-      if (values[event.name] === null && val !== null) {
-        this.emit(name, dateTime);
-      }
-      values[event.name] = val;
-    };
-    if (this.handlers[on]) {
-      this.handlers[on].push(hdl);
+  public on (name: string, handler: IHandler) {
+    if (name in this.events) {
+      const event = this.events[name];
+      event.order.push(handler.name);
+      event.handlers[handler.name] = handler.handler;
     } else {
-      this.handlers[on] = new Array(hdl);
+      this.events[name] = {
+        order: [ handler.name ],
+        handlers: {
+          [handler.name]: handler.handler 
+        }
+      };
     }
   }
 
   private emit (name, dateTime: DateTime) {
-    for (const handler of this.handlers[name]) {
-      handler(dateTime);
+    const event = this.events[name];
+    for (const handlerName of event.order) {
+      const handler = event.handlers[handlerName];
+      this.values[handlerName] = handler(dateTime, this.values);
     }
   }
 
