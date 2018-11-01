@@ -1,12 +1,6 @@
 import DateTime from './DateTime';
 
-type THandler = (dateTime: DateTime, values: any) => any;
-
-export interface IHandler {
-  name: string;
-  require: string[];
-  handler: THandler;
-}
+export type THandler = (dateTime: DateTime, values: any) => any;
 
 interface IHandlersMap { [name: string]: THandler; }
 
@@ -15,9 +9,9 @@ export class DateTimeEvent {
   private order: string[] = [];
   private handlers: IHandlersMap = {};
 
-  public add (handler: IHandler) {
-    this.order.push(handler.name);
-    this.handlers[handler.name] = handler.handler;
+  public add (name: string, handler: THandler) {
+    this.order.push(name);
+    this.handlers[name] = handler;
   }
 
   public run (dateTime: DateTime, values: object) {

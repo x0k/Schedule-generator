@@ -1,7 +1,14 @@
 import DateTime from './DateTime';
-import { DateTimeEvent, IHandler } from './DateTimeEvent';
+import { DateTimeEvent, THandler } from './DateTimeEvent';
 
-export default class EventProvider {
+interface IListner {
+  event: string;
+  name: string;
+  require?: string[];
+  handler: THandler;
+}
+
+export default class DateTimeIterator {
 
   private values: { [name: string]: any } = {};
   private events: { [name: string]: DateTimeEvent } = {
@@ -25,20 +32,17 @@ export default class EventProvider {
     }
   }
 
-  public on (name: string, handler: IHandler) {
-    if (this.hasEvent(name)) {
-      this.events[name].add(handler);
+  public addListner (listner: IListner) {
+    if (this.hasEvent(listner.event)) {
+      const event = this.events[listner.event];
+      event.add(listner.name, listner.handler);
     }
   }
 
-  public load (events: { [event: string]: IHandler[] }): void {
-
-    for (const event of Object.keys(events)) {
-      for (const handler of events[event]) {
-        this.on(event, handler);
-      }
+  public load (listners: IListner[]): void {
+    for (const listner of listners) {
+      this.addListner(listner);
     }
-
   }
 
   public hasEvent (name): boolean {

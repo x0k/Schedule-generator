@@ -41,23 +41,49 @@ export default class DateTime {
 
   public day: number; // 1-7 from monday
 
-  constructor (now: Date) {
-    this.year = now.getFullYear();
-    this.month = now.getMonth() + 1;
-    this.date = now.getDate();
-    this.hours = now.getHours();
-    this.minutes = now.getMinutes() - 1;
+  constructor (public begin: Date) {
+    this.year = begin.getFullYear();
+    this.month = begin.getMonth() + 1;
+    this.date = begin.getDate();
+    this.hours = begin.getHours();
+    this.minutes = begin.getMinutes() - 1;
 
-    const day = now.getDay();
+    const day = begin.getDay();
     this.day = day > 0 ? day : 7;
   }
 
   public before (date: Date): boolean {
-    if (this.year < date.getFullYear() || this.month < date.getMonth() + 1 || this.date < date.getDate()
-      || this.hours < date.getHours() || this.minutes < date.getMinutes()) {
+    if (
+      this.year < date.getFullYear()
+      || (this.year === date.getFullYear() && this.month < date.getMonth() + 1)
+      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1 && this.date < date.getDate())
+      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1
+        && this.date === date.getDate() && this.hours < date.getHours())
+      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1
+        && this.date === date.getDate() && this.hours === date.getHours() && this.minutes < date.getMinutes())
+    ) {
       return true;
     }
     return false;
+  }
+
+  public after (date: Date): boolean {
+    if (
+      this.year > date.getFullYear()
+      || (this.year === date.getFullYear() && this.month > date.getMonth() + 1)
+      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1 && this.date > date.getDate())
+      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1
+        && this.date === date.getDate() && this.hours > date.getHours())
+      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1
+        && this.date === date.getDate() && this.hours === date.getHours() && this.minutes > date.getMinutes())
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  public isToday (date: Date): boolean {
+    return (this.date === date.getDate()) && (this.month === date.getMonth() + 1) && (this.year === date.getFullYear());
   }
 
   public next (level): DateTime {
