@@ -1,4 +1,8 @@
-import equal from 'deep-equal';
+interface IGroup {
+  start: number;
+  length: number;
+  value: any;
+}
 
 export default class Grouper {
 
@@ -16,30 +20,38 @@ export default class Grouper {
   }
 
   private offsetSize: number;
-  private groups: any[] = [];
+  private groups: IGroup[] = [];
+  private initialOffset: number;
 
   constructor (private now: Date, offsetSize: string) {
     this.offsetSize = Grouper.getOffsetSize(offsetSize);
+    this.initialOffset = now.getTime();
   }
 
   public add (value: any): void {
     const last = (this.groups.length > 0) ? this.groups[this.groups.length - 1] : null;
-    if (!last || (!(last[1] === value))) {
-      if (last) {
-        last[0] += this.offsetSize;
-      }
-      this.groups.push([0, value]);
+    if (!last) {
+      this.groups.push({
+        length: this.offsetSize,
+        start: this.initialOffset,
+        value,
+      });
+    } else if (!(last.value === value)) {
+      this.groups.push({
+        length: this.offsetSize,
+        start: last.start + last.length,
+        value,
+      });
     } else {
-      last[0] += this.offsetSize;
+      last.length += this.offsetSize;
     }
   }
 
   public print (): void {
-    for (const [offset, value] of this.groups) {
-      if (value) {
-        console.log(`${this.dateToString(this.now)}: ${value}`);
+    for (const group of this.groups) {
+      if (group.value) {
+        console.log(`${this.dateToString(group.start, group.length)} - ${group.value}`);
       }
-      this.now.setTime(this.now.getTime() + offset);
     }
   }
 
@@ -62,8 +74,11 @@ export default class Grouper {
     }
   }
 
-  private dateToString (date: Date): string {
-    return `${date.getDate()}.${date.getMonth() +1} ${this.dayToName(date.getDay())} ${date.getHours()}:${date.getMinutes()}`;
+  private dateToString (start: number, length: number): string {
+    const sDate = new Date(start),
+      eDate = new Date(start + length);
+    return `${sDate.getDate()}.${sDate.getMonth() + 1} ${this.dayToName(sDate.getDay())} ` +
+      `${sDate.getHours()}:${sDate.getMinutes()} - ${eDate.getHours()}:${eDate.getMinutes()}`;
   }
 
 }

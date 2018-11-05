@@ -1,24 +1,16 @@
-import DateTime from './DateTime';
+import Event from './Event';
 
-export type THandler = (dateTime: DateTime, values: any) => any;
+export interface IDateTimeEvent {
+  handler: any;
+  require: string[];
+}
 
-interface IHandlersMap { [name: string]: THandler; }
+export class DateTimeEvent extends Event {
+  public level: number;
 
-export class DateTimeEvent {
-
-  private order: string[] = [];
-  private handlers: IHandlersMap = {};
-
-  public add (name: string, handler: THandler) {
-    this.order.push(name);
-    this.handlers[name] = handler;
-  }
-
-  public run (dateTime: DateTime, values: object) {
-    for (const handlerName of this.order) {
-      const handler = this.handlers[handlerName];
-      values[handlerName] = handler(dateTime, values);
-    }
+  constructor (handler: any, level: number) {
+    super(handler);
+    this.level = level;
   }
 
 }

@@ -6,11 +6,11 @@ const year = 2018,
   before = (dt: DateTime, d: number, m: number) => dt.before(toDate(year, d, m)),
   after = (dt: DateTime, d: number, m: number) => dt.after(toDate(year, d, m));
 
-export default [
-  {
-    event: 'minutes',
+export default {
+  ERPSystem: {
     name: 'ERPSystem',
-    handler: (dt: DateTime, v: any) => {
+    require: ['dateTime', 'minutes', 'numerator', 'denumerator', 'call1', 'call2', 'call3'],
+    handler: (v: any, dt: DateTime) => {
       if (
         (v.numerator && v.call1 && (today(dt, 24, 9) || today(dt, 8, 10) || today(dt, 22, 10)))
         || (v.monday && v.denumerator && v.call1 && !today(dt, 17, 9))
@@ -20,10 +20,9 @@ export default [
       }
     },
   },
-  {
-    event: 'minutes',
-    name: 'SED',
-    handler: (dt: DateTime, v: any) => {
+  SED: {
+    require: ['minutes'],
+    handler: (v: any, dt: DateTime) => {
       if (
         (v.monday && v.denumerator && v.call2)
         || (v.call1 && (v.denumerator && today(dt, 27, 11) || v.tuesday && v.numerator && after(dt, 24, 9)))
@@ -33,10 +32,9 @@ export default [
       }
     },
   },
-  {
-    event: 'minutes',
-    name: 'Psihology',
-    handler: (dt: DateTime, v: any) => {
+  Psihology: {
+    require: ['minutes'],
+    handler: (v: any, dt: DateTime) => {
       if (
         (v.monday && v.call3 && v.denumerator)
         || (v.monday && v.call4 && (v.numerator || today(dt, 17, 9)))
@@ -45,10 +43,9 @@ export default [
       }
     },
   },
-  {
-    event: 'minutes',
-    name: 'Reengineering',
-    handler: (dt: DateTime, v: any) => {
+  Reengineering: {
+    require: ['minutes'],
+    handler: (v: any, dt: DateTime) => {
       if (
         (v.tuesday && v.call2)
         || (today(dt, 19, 12) && v.call2)
@@ -57,10 +54,9 @@ export default [
       }
     },
   },
-  {
-    event: 'minutes',
-    name: 'Projecting',
-    handler: (dt: DateTime, v: any) => {
+  Projecting: {
+    require: ['minutes'],
+    handler: (v: any, dt: DateTime) => {
       if (
         (v.call3 && (today(dt, 11, 12) || today(dt, 18, 12)))
         || (v.wednesday && v.call1 && v.numerator)
@@ -71,10 +67,9 @@ export default [
       }
     },
   },
-  {
-    event: 'minutes',
-    name: 'Graphics',
-    handler: (dt: DateTime, v: any) => {
+  Graphics: {
+    require: ['minutes'],
+    handler: (v: any, dt: DateTime) => {
       if (
         (v.wednesday && v.call3 && before(dt, 4, 10))
         || (v.friday && (v.call5 || v.call6) && v.numerator)
@@ -83,10 +78,9 @@ export default [
       }
     },
   },
-  {
-    event: 'minutes',
-    name: 'Corporate',
-    handler: (dt: DateTime, v: any) => {
+  Corporate: {
+    require: ['minutes'],
+    handler: (v: any, dt: DateTime) => {
       if (
         (v.wednesday && v.call4 && v.denumerator && before(dt, 13, 12))
         || ((v.call4 || v.call5)
@@ -96,19 +90,17 @@ export default [
       }
     },
   },
-  {
-    event: 'minutes',
-    name: 'KnowledgeEngenering',
-    handler: (dt: DateTime, v: any) => {
+  KnowledgeEngenering: {
+    require: ['minutes'],
+    handler: (v: any, dt: DateTime) => {
       if (v.thursday && (v.call4 || v.call5 || v.call6) && v.denumerator && (v.call6 ? before(dt, 14, 12) : true)) {
         return 'Основы инженерии знаний';
       }
     },
   },
-  {
-    event: 'minutes',
-    name: 'ITRegion',
-    handler: (dt: DateTime, v: any) => {
+  ITRegion: {
+    require: ['minutes'],
+    handler: (v: any, dt: DateTime) => {
       if (
         (v.saturday && v.call2 && after(dt, 5, 10) && before(dt, 9, 12))
         || (v.saturday && v.call3 && v.numerator && after(dt, 12, 10))
@@ -118,10 +110,10 @@ export default [
       }
     },
   },
-  {
-    event: 'minutes',
-    name: 'subjects',
-    handler: (dt: DateTime, values: any) => {
+  subjects: {
+    require: ['ERPSystem', 'SED', 'Psihology', 'Reengineering',
+      'Projecting', 'Graphics', 'Corporate', 'KnowledgeEngenering', 'ITRegion'],
+    handler: (values: any, dt: DateTime) => {
       const subjects = ['ERPSystem', 'SED', 'Psihology', 'Reengineering',
         'Projecting', 'Graphics', 'Corporate', 'KnowledgeEngenering', 'ITRegion'];
       for (const subject of subjects) {
@@ -132,4 +124,4 @@ export default [
       return null;
     },
   },
-];
+};

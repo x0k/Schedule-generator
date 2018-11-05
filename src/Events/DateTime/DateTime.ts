@@ -35,6 +35,7 @@ export default class DateTime {
 
   public year: number;
   public month: number; // 1-12
+  public week: number; // 1 - ...
   public date: number; // 1-31
   public hours: number; // 0-23
   public minutes: number; // 0-59
@@ -44,6 +45,7 @@ export default class DateTime {
   constructor (public begin: Date) {
     this.year = begin.getFullYear();
     this.month = begin.getMonth() + 1;
+    this.week = 1;
     this.date = begin.getDate();
     this.hours = begin.getHours();
     this.minutes = begin.getMinutes() - 1;
@@ -116,6 +118,8 @@ export default class DateTime {
       this.day++;
     } else {
       this.day = 1;
+      this.week++;
+      level('weeks', this);
     }
     // Date
     if (this.date < DateTime.getMonthLength(this.year, this.month)) {
@@ -145,6 +149,7 @@ export default class DateTime {
       this.addHours(level);
     }
     level('minutes', this);
+    level('dateTime', this);
   }
 
 }
