@@ -1,6 +1,6 @@
 import DateTime from './DateTime/DateTime';
 
-const before = (dt: DateTime, h: number, m: number) => dt.hours < h || (dt.hours === h && dt.minutes <= m),
+const before = (dt: DateTime, h: number, m: number) => dt.hours < h || (dt.hours === h && dt.minutes < m),
   after = (dt: DateTime, h: number, m: number) => dt.hours > h || (dt.hours === h && dt.minutes >= m),
   inPeriod = (dt: DateTime, bh, bm, eh, em) => after(dt, bh, bm) && before(dt, eh, em);
 

@@ -48,7 +48,7 @@ export default class DateTime {
     this.week = 1;
     this.date = begin.getDate();
     this.hours = begin.getHours();
-    this.minutes = begin.getMinutes() - 1;
+    this.minutes = begin.getMinutes();
 
     const day = begin.getDay();
     this.day = day > 0 ? day : 7;
@@ -95,6 +95,10 @@ export default class DateTime {
 
   public toDate (): Date {
     return new Date(this.year, this.month - 1, this.date, this.hours, this.minutes);
+  }
+
+  public toString (): string {
+    return `${this.year} ${this.month} ${this.date} ${this.hours} ${this.minutes}`;
   }
 
   private addYear (level): void {

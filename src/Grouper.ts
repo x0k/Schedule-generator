@@ -28,11 +28,13 @@ export default class Grouper {
     this.initialOffset = now.getTime();
   }
 
-  public add (value: any): void {
-    const last = (this.groups.length > 0) ? this.groups[this.groups.length - 1] : null;
+  public add (val: any): void {
+    const len = this.groups.length,
+      last = (len > 0) ? this.groups[len - 1] : null,
+      value = val.subjects;
     if (!last) {
       this.groups.push({
-        length: this.offsetSize,
+        length: 0,
         start: this.initialOffset,
         value,
       });

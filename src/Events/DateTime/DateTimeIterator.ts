@@ -30,7 +30,8 @@ export default class DateTimeIterator extends EventProvider {
     const dateTime = new DateTime(begin),
       onChange = this.emit.bind(this);
     // Init values
-    for (const name of Object.keys(this.events)) {
+    const events = ['dateTime', 'minutes', 'hours', 'days', 'day', 'weeks', 'months', 'years'];
+    for (const name of events) {
       this.emit(name, dateTime, this.values);
     }
     // Start

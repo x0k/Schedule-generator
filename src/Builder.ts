@@ -1,13 +1,13 @@
+import Calls from './Events/Calls';
+import DateTime from './Events/DateTime/DateTime';
 import DateTimeIterator from './Events/DateTime/DateTimeIterator';
-import Grouper from './Grouper';
-// Data
 import Days from './Events/Days';
 import Periods from './Events/Periods';
-import Calls from './Events/Calls';
 import Subjects from './Events/Subjects';
+import Grouper from './Grouper';
 
 const iterator = new DateTimeIterator(),
-  begin = new Date(), // new Date(2018, 8, 1),
+  begin = new Date(2018, 10, 12, 8), // new Date(2018, 8, 1),
   end = new Date(2018, 11, 29),
   grouper = new Grouper(begin, 'minutes'),
   listners = {};
@@ -17,7 +17,7 @@ Object.assign(listners, Days, Periods, Calls);
 Object.assign(listners, Subjects, {
   logger: {
     require: ['subjects'],
-    handler: (v) => grouper.add(v.subjects),
+    handler: (v) => grouper.add(v),
   },
 });
 for (const name of Object.keys(listners)) {
