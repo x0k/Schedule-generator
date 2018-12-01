@@ -4,11 +4,6 @@ import EventProvider from './EventProvider';
 
 export default class DateTimeIterator extends EventProvider {
 
-  private static getLevelName (level: number) {
-    const levels = ['minutes', 'hours', 'days', 'weeks', 'months', 'years'];
-    return levels[level];
-  }
-
   constructor () {
     super({
       dateTime: new DateTimeEvent((v, dt: DateTime) => dt, 0),
