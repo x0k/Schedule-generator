@@ -1,60 +1,51 @@
 export default class DateTime {
 
-  public static leapYear (year): boolean {
+  static leapYear (year) {
     return ((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0);
   }
 
-  public static getMonthLength (year: number, month: number) {
+  static getMonthLength (year, month) {
     // tslint:disable-next-line:no-bitwise
     return month === 2 ? year & 3 || !(year % 25) && year & 15 ? 28 : 29 : 30 + (month + (month >> 3) & 1);
   }
 
-  public static getTimeBethwen (begin: Date, end: Date) {
+  static getTimeBethwen (begin, end) {
     return end.getTime() - begin.getTime();
   }
 
-  public static toSeconds (milliseconds: number): number {
+  static toSeconds (milliseconds) {
     return milliseconds / 1000;
   }
 
-  public static toMinutes (milliseconds: number): number {
+  static toMinutes (milliseconds) {
     return milliseconds / 60000;
   }
 
-  public static toHours (milliseconds: number): number {
+  static toHours (milliseconds) {
     return milliseconds / 3600000;
   }
 
-  public static toDays (milliseconds: number): number {
+  static toDays (milliseconds) {
     return milliseconds / 86400000;
   }
 
-  public static toWeeks (milliseconds: number): number {
+  static toWeeks (milliseconds) {
     return milliseconds / 604800000;
   }
 
-  public year: number;
-  public month: number; // 1-12
-  public week: number; // 1 - ...
-  public date: number; // 1-31
-  public hours: number; // 0-23
-  public minutes: number; // 0-59
-
-  public day: number; // 1-7 from monday
-
-  constructor (public begin: Date) {
+  constructor (begin) {
     this.year = begin.getFullYear();
-    this.month = begin.getMonth() + 1;
-    this.week = 1;
-    this.date = begin.getDate();
-    this.hours = begin.getHours();
-    this.minutes = begin.getMinutes();
+    this.month = begin.getMonth() + 1; // 1-12
+    this.week = 1; // 1 - ...
+    this.date = begin.getDate(); // 1-31
+    this.hours = begin.getHours(); // 0-23
+    this.minutes = begin.getMinutes(); // 0-59
 
     const day = begin.getDay();
-    this.day = day > 0 ? day : 7;
+    this.day = day > 0 ? day : 7; // 1-7 from monday
   }
 
-  public before (date: Date): boolean {
+  before (date) {
     if (
       this.year < date.getFullYear()
       || (this.year === date.getFullYear() && this.month < date.getMonth() + 1)
@@ -69,7 +60,7 @@ export default class DateTime {
     return false;
   }
 
-  public after (date: Date): boolean {
+  after (date) {
     if (
       this.year > date.getFullYear()
       || (this.year === date.getFullYear() && this.month > date.getMonth() + 1)
@@ -84,29 +75,29 @@ export default class DateTime {
     return false;
   }
 
-  public isToday (date: Date): boolean {
+  isToday (date) {
     return (this.date === date.getDate()) && (this.month === date.getMonth() + 1) && (this.year === date.getFullYear());
   }
 
-  public next (level): DateTime {
+  next (level) {
     this.addMinute(level);
     return this;
   }
 
-  public toDate (): Date {
+  toDate () {
     return new Date(this.year, this.month - 1, this.date, this.hours, this.minutes);
   }
 
-  public toString (): string {
+  toString () {
     return `${this.year} ${this.month} ${this.date} ${this.hours} ${this.minutes}`;
   }
 
-  private addYear (level): void {
+  addYear (level) {
     this.year++;
     level('years', this);
   }
 
-  private addMonth (level): void {
+  addMonth (level) {
     if (this.month < 12) {
       this.month++;
     } else {
@@ -116,7 +107,7 @@ export default class DateTime {
     level('months', this);
   }
 
-  private addDate (level): void {
+  addDate (level) {
     // Day
     if (this.day < 7) {
       this.day++;
@@ -135,7 +126,7 @@ export default class DateTime {
     level('days', this);
   }
 
-  private addHours (level): void {
+  addHours (level) {
     if (this.hours < 23) {
       this.hours++;
     } else {
@@ -145,7 +136,7 @@ export default class DateTime {
     level('hours', this);
   }
 
-  private addMinute (level): void {
+  addMinute (level) {
     if (this.minutes < 59) {
       this.minutes++;
     } else {

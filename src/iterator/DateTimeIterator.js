@@ -1,27 +1,23 @@
 import DateTime from './DateTime';
-import { DateTimeEvent, IDateTimeEvent } from './DateTimeEvent';
+import DateTimeEvent from './DateTimeEvent';
 import EventProvider from './EventProvider';
 
 export default class DateTimeIterator extends EventProvider {
 
   constructor () {
     super({
-      dateTime: new DateTimeEvent((v, dt: DateTime) => dt, 0),
-      minutes: new DateTimeEvent((v, dt: DateTime) => dt.minutes, 0),
-      hours: new DateTimeEvent((v, dt: DateTime) => dt.hours, 1),
-      days: new DateTimeEvent((v, dt: DateTime) => dt.date, 2),
-      day: new DateTimeEvent((v, dt: DateTime) => dt.day, 2),
-      weeks: new DateTimeEvent((v, dt: DateTime) => dt.week, 3),
-      months: new DateTimeEvent((v, dt: DateTime) => dt.month, 4),
-      years: new DateTimeEvent((v, dt: DateTime) => dt.year, 5),
+      dateTime: new DateTimeEvent((v, dt) => dt, 0),
+      minutes: new DateTimeEvent((v, dt) => dt.minutes, 0),
+      hours: new DateTimeEvent((v, dt) => dt.hours, 1),
+      days: new DateTimeEvent((v, dt) => dt.date, 2),
+      day: new DateTimeEvent((v, dt) => dt.day, 2),
+      weeks: new DateTimeEvent((v, dt) => dt.week, 3),
+      months: new DateTimeEvent((v, dt) => dt.month, 4),
+      years: new DateTimeEvent((v, dt) => dt.year, 5),
     });
   }
 
-  public getEvent (name: string): DateTimeEvent {
-    return super.getEvent(name) as DateTimeEvent;
-  }
-
-  public start (begin: Date, end: Date) {
+  start (begin, end) {
     const dateTime = new DateTime(begin),
       onChange = this.emit.bind(this);
     // Init values
@@ -35,8 +31,8 @@ export default class DateTimeIterator extends EventProvider {
     }
   }
 
-  public addListner (name: string, listner: IDateTimeEvent) {
-    let target: DateTimeEvent = null;
+  addListner (name, listner) {
+    let target = null;
     // Check required events and define target
     for (const eventName of listner.require) {
       if (this.hasEvent(eventName)) {
@@ -57,5 +53,10 @@ export default class DateTimeIterator extends EventProvider {
     }
     this.addEvent(name, new DateTimeEvent(listner.handler, target.level));
   }
+
+  /*delListner (name) {
+    const event = this.getEvent(name);
+    
+  }*/
 
 }

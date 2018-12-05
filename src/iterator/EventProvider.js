@@ -1,30 +1,34 @@
-import Event from './Event';
-
 export default class EventProvider {
 
-  protected values: { [name: string]: any } = {};
-  protected events: { [name: string]: Event } = {};
-
-  constructor (events: { [name: string]: Event }) {
+  constructor (events) {
     for (const eventName of Object.keys(events)) {
       const event = events[eventName];
       this.addEvent(eventName, event);
     }
   }
 
-  public addEvent (name: string, event: Event) {
+  addEvent (name, event) {
     this.events[name] = event;
   }
 
-  public hasEvent (name: string): boolean {
+  hasEvent (name) {
     return name in this.events;
   }
 
-  public getEvent (name: string): Event {
+  getEvent (name) {
     return this.events[name];
   }
 
-  public emit (name: string, ...args): void {
+  delEvent (name) {
+    if (this.hasEvent(name)) {
+      delete this.events[name];
+      if (this.values[name]) {
+        delete this.values[name];
+      }
+    }
+  }
+
+  emit (name, ...args) {
     const event = this.events[name];
     this.values[name] = event.handler(this.values, ...args);
     for (const eventName of event.listners) {
