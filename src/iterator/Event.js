@@ -1,8 +1,13 @@
 export default class Event {
 
-  constructor (handler) {
-    this.handler = handler;
+  constructor (data) {
+    this.name = data.name;
+    this.handler = data.handler;
     this.listners = [];
+  }
+
+  get name () {
+    return this.name;
   }
 
   addListner (name) {

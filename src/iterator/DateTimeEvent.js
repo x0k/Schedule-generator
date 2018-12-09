@@ -2,9 +2,13 @@ import Event from './Event';
 
 export default class DateTimeEvent extends Event {
 
-  constructor (handler, level) {
-    super(handler);
-    this.level = level;
+  constructor (data) {
+    super(data);
+    this.level = data.level;
+  }
+
+  get level () {
+    return this.level;
   }
 
 }

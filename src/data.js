@@ -1,7 +1,7 @@
-import DateTime from './iterator/DateTime';
-
-const date = new DateTime(new Date());
-
 export default [
-  [ 'in', date, [ 'time', date, 8, 0 ], [ 'time', date, 9, 30 ] ]
+  {
+    name: 'call1',
+    require: ['dateTime'],
+    flow: [ [ [ 8, 0 ], 'time', [ 9, 30 ], 'time' ], 'in' ]
+  }
 ];

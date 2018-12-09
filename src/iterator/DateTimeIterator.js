@@ -5,16 +5,52 @@ import EventProvider from './EventProvider';
 export default class DateTimeIterator extends EventProvider {
 
   constructor () {
-    super({
-      dateTime: new DateTimeEvent((v, dt) => dt, 0),
-      minutes: new DateTimeEvent((v, dt) => dt.minutes, 0),
-      hours: new DateTimeEvent((v, dt) => dt.hours, 1),
-      days: new DateTimeEvent((v, dt) => dt.date, 2),
-      day: new DateTimeEvent((v, dt) => dt.day, 2),
-      weeks: new DateTimeEvent((v, dt) => dt.week, 3),
-      months: new DateTimeEvent((v, dt) => dt.month, 4),
-      years: new DateTimeEvent((v, dt) => dt.year, 5),
-    });
+    super();
+    const events = [
+      {
+        name: 'dateTime',
+        handler: (data, dt) => dt,
+        level: 0,
+      },
+      {
+        name: 'minutes',
+        handler: (data, dt) => dt.minutes,
+        level: 0,
+      },
+      {
+        name: 'hours',
+        handler: (data, dt) => dt.hours,
+        level: 1,
+      },
+      {
+        name: 'days',
+        handler: (data, dt) => dt.date,
+        level: 2,
+      },
+      {
+        name: 'day',
+        handler: (data, dt) => dt.day,
+        level: 2,
+      },
+      {
+        name: 'weeks',
+        handler: (data, dt) => dt.week,
+        level: 3
+      },
+      {
+        name: 'months',
+        handler: (data, dt) => dt.month,
+        level: 4
+      },
+      {
+        name: 'years',
+        handler: (data, dt) => dt.year,
+        level: 5,
+      },
+    ];
+    for (let event of events) {
+      this.addEvent(new DateTimeEvent(event));
+    }
   }
 
   start (begin, end) {
@@ -31,7 +67,7 @@ export default class DateTimeIterator extends EventProvider {
     }
   }
 
-  addListner (name, listner) {
+  addListner (listner) {
     let target = null;
     // Check required events and define target
     for (const eventName of listner.require) {
@@ -47,16 +83,12 @@ export default class DateTimeIterator extends EventProvider {
       }
     }
     if (target) {
-      target.addListner(name);
+      target.addListner(listner.name);
+      listner.level = target.level;
     } else {
-      target = new DateTimeEvent(null, Number.MAX_VALUE);
+      throw new Error(`Target not found for ${listner.name}`);
     }
-    this.addEvent(name, new DateTimeEvent(listner.handler, target.level));
+    this.addEvent(new DateTimeEvent(listner));
   }
-
-  /*delListner (name) {
-    const event = this.getEvent(name);
-    
-  }*/
 
 }

@@ -1,14 +1,7 @@
 export default class EventProvider {
 
-  constructor (events) {
-    for (const eventName of Object.keys(events)) {
-      const event = events[eventName];
-      this.addEvent(eventName, event);
-    }
-  }
-
-  addEvent (name, event) {
-    this.events[name] = event;
+  addEvent (event) {
+    this.events[event.name] = event;
   }
 
   hasEvent (name) {

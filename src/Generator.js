@@ -1,54 +1,85 @@
-import DateTime from './iterator/DateTime';
-import DateTimeEvent from './iterator/DateTimeEvent';
 import DateTimeIterator from './iterator/DateTimeIterator';
 
 const operations = {
-  'before': (date: DateTime, value: Date) => date.before(value),
-  'after': (date: DateTime, value: Date) => date.after(value),
-  'inPeriod': (date: DateTime, dateBegin: Date, dateEnd: Date) => {
-    return operations.after(date, dateBegin) && operations.before(date, dateEnd);
-  },
-  'time': (date: DateTime, h: number, m: number): Date => {
-    const timeDate = date.toDate();
+  // Data depended
+  'before': value => data => data['dateTime'].before(value),
+  'after': value => data => data['dateTime'].after(value),
+  'in': beginDate => endDate => data => operations.after(beginDate)(data) && operations.before(endDate)(data),
+  'time': h => m => data => {
+    const timeDate = data['dateTime'].toDate();
     timeDate.setHours(h, m);
     return timeDate;
   },
-  '+': (a: any, b: any) => a + b,
-  '-': (a: any, b: any) => a - b,
-  '/': (a: any, b: any) => a / b,
-  '*': (a: any, b: any) => a * b,
+  'date': number => new Date(number),
+  '+': a => b => a + b,
+  '-': a => b => a - b,
+  '/': a => b => a / b,
+  '*': a => b => a * b,
+  'and': a => b => a && b,
+  'or': a => b => a || b,
+  'not': operand => !operand,
 };
 
 export default class Generator {
 
-  private iterator;
+  static toHandler (flow) {
+    let len = (array) => array.length - 1,
+      first = (array) => array[0],
+      last = (array) => array[len(array)],
+      ext = (array) => array.shift(),
+      del = (array) => array.pop(),
+      add = (array, value) => array.push(value),
+      isFun = (value) => typeof value === 'function',
+      isArr = (value) => Array.isArray(value),
+      params = (flow, data) => {
+        let result = [];
+        for (let element of flow) {
+          if (isArr(element)) {
+            add(result, params(element, data));
+          } else {
+            if (element in operations) {
+              element = operations[element];
+            }
+            if (typeof(element) === 'function') {
+              let params = last(result);
+              if (data) {
+                add(params, data);
+              }
+              while (params.length && isFun(element) && !isFun(first(params)) && !isArr(first(params))) {
+                element = element(ext(params));
+              }
+              if (typeof(element) !== 'function') {
+                del(result);
+              }
+            }
+            add(result, element);
+          }
+        }
+        return result;
+      },
+      instructions = params(flow);
+    return (data) => params(instructions, data)[0];
+  }
 
   constructor () {
     this.iterator = new DateTimeIterator();
   }
 
-  public load (data) {
-    for (const event of data) {
-
+  load (events) {
+    for (let event of events) {
+      event.handler = Generator.toHandler(event.flow);
+      this.iterator.addListner(event);
     }
   }
 
-  public run (begin: Date, end: Date, event: string): any[] {
+  run (begin, end, event) {
     const data = [];
     this.iterator.addListner('solver', {
-      require: ['subjects'],
-      handler: (v) => data.push(v),
+      require: [event],
+      handler: value => data.push(value),
     });
     this.iterator.start(begin, end);
     return data;
-  }
-
-  private toHandler (parameters: any, queue: any[]) {
-    const stack = [];
-
-    return (...data) => {
-
-    };
   }
 
 }
