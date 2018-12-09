@@ -22,8 +22,10 @@ export default class EventProvider {
   }
 
   emit (name, ...args) {
-    const event = this.events[name];
-    this.values[name] = event.handler(this.values, ...args);
+    let event = this.events[name],
+      result = event.handler(this.values, ...args),
+      value = result || result === 0 ? event.getValue(this.values, result) : false;
+    this.values[name] = value;
     for (const eventName of event.listners) {
       this.emit(eventName, ...args);
     }

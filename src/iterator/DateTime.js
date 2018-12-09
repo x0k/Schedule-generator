@@ -5,7 +5,6 @@ export default class DateTime {
   }
 
   static getMonthLength (year, month) {
-    // tslint:disable-next-line:no-bitwise
     return month === 2 ? year & 3 || !(year % 25) && year & 15 ? 28 : 29 : 30 + (month + (month >> 3) & 1);
   }
 
