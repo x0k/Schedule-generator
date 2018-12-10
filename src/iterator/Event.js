@@ -1,22 +1,22 @@
 export default class Event {
 
   constructor (data) {
-    this.name = data.name;
+    this._name = data.name;
     this.handler = data.handler;
     if (data.value) {
       this.value = data.value;
-    } else {
-      this.value = () => true;
     }
     this.listners = [];
   }
 
   get name () {
-    return this.name;
+    return this._name;
   }
 
-  getValue (data) {
-    return this.value(data);
+  getValue (data, result) {
+    if (this.value)
+      return this.value(data);
+    return result;
   }
 
   addListner (name) {

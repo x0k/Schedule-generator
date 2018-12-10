@@ -10,49 +10,41 @@ export default class DateTimeIterator extends EventProvider {
       {
         name: 'dateTime',
         handler: (data, dt) => dt,
-        value: (data, result) => result,
         level: 0,
       },
       {
         name: 'minutes',
         handler: (data, dt) => dt.minutes,
-        value: (data, result) => result,
         level: 0,
       },
       {
         name: 'hours',
         handler: (data, dt) => dt.hours,
-        value: (data, result) => result,
         level: 1,
       },
       {
         name: 'days',
         handler: (data, dt) => dt.date,
-        value: (data, result) => result,
         level: 2,
       },
       {
         name: 'day',
         handler: (data, dt) => dt.day,
-        value: (data, result) => result,
         level: 2,
       },
       {
         name: 'weeks',
         handler: (data, dt) => dt.week,
-        value: (data, result) => result,
         level: 3
       },
       {
         name: 'months',
         handler: (data, dt) => dt.month,
-        value: (data, result) => result,
         level: 4
       },
       {
         name: 'years',
         handler: (data, dt) => dt.year,
-        value: (data, result) => result,
         level: 5,
       },
     ];
@@ -67,7 +59,7 @@ export default class DateTimeIterator extends EventProvider {
     // Init values
     const events = ['dateTime', 'minutes', 'hours', 'days', 'day', 'weeks', 'months', 'years'];
     for (const name of events) {
-      this.emit(name, this.values, dateTime);
+      this.emit(name, dateTime);
     }
     // Start
     while (dateTime.before(end)) {

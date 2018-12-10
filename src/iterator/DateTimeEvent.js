@@ -4,11 +4,11 @@ export default class DateTimeEvent extends Event {
 
   constructor (data) {
     super(data);
-    this.level = data.level;
+    this._level = data.level;
   }
 
   get level () {
-    return this.level;
+    return this._level;
   }
 
 }

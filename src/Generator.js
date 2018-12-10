@@ -20,6 +20,13 @@ const operations = {
     date.setMonth(m - 1, d);
     return date;
   },
+  'map': list => data => {
+    let map = {};
+    for (let name of list) {
+      map[name] = data[name];
+    }
+    return map;
+  },
   // Data independent
   'toDate': number => new Date(number),
   'toBool': value => value || value === 0,
@@ -31,57 +38,67 @@ const operations = {
   'and': a => b => a && b,
   'or': a => b => a || b,
   'not': operand => !operand,
-  'every': list => list.every(operations.toBool),
-  'any': list => list.some(operations.toBool),
+  'every': list => {
+    if (list.every(operations.toBool)) {
+      return list;
+    }
+    return false;
+  },
+  'any': list => {
+    for (let el of list) {
+      if (operations.toBool(el)) {
+        return el;
+      }
+    }
+    return false;
+  },
 };
 
 export default class Generator {
 
   static toHandler (flow) {
     let len = (array) => array.length - 1,
-      last = (array) => array[len(array)],
-      add = (array, value) => array.push(value),
-      isFun = (value) => typeof value === 'function' || value in operations,
+      first = (array) => array[0],
+      add = (array, ...values) => array.push(...values),
+      pre = (array, ...values) => array.unshift(...values),
+      get = (array, index) => {
+        let el = array[index];
+        if (el in operations)
+          return operations[el];
+        return el;
+      },
+      isFun = (value) => typeof value === 'function',
       isArr = (value) => Array.isArray(value),
-      memorize = (flow) => {
+      perform = (flow, data) => {
         let result = [];
-        for (let i = 0; i < flow.length; i++) {
-          let el = flow[i];
-          if (el in operations) {
-            el = operations[el];
-          }
-          while (isFun(el) && i < flow.length && !isFun(flow[i+1]) && !isArr(flow[i+1])) {
-            el = el(flow[++i]);
-          }
+        for (let i = len(flow); i >= 0; i--) {
+          let el = get(flow, i);
           if (isArr(el)) {
-            el = memorize(el);
+            add(result, perform(el, data));
+          } else {
+            let params;
+            if (isFun(el) && result.length) {
+              params = result.pop();
+              while (params.length && isFun(el) && !isFun(first(params)) && (!isArr(first(params)) || data)) {
+                let ps = params.shift();
+                el = el(ps);
+              }
+            }
+            if (isFun(el) && params) {
+              if (data) {
+                add(result, el(data));
+              } else {
+                add(result, el, params);
+              }
+            } else {
+              pre(result, el);
+            }
           }
-          add(result, el);
         }
         return result;
       },
-      memory = memorize(flow),
-      solve = (flow, data) => {
-        let result = [];
-        for (let i = len(flow); i >= 0; i--) {
-          let el = flow[i];
-          if (isFun(el)) {
-            let params = isArr(last(result)) ? result.pop() : result;
-            while (params.length && isFun(el) && !isFun(last(flow))) {
-              el = el(params.pop());
-            }
-            if (!params.length && isFun(el)) {
-              el = el(data);
-            }
-          }
-          if (isArr(el)) {
-            el = solve(el, data);
-          }
-          add(result, el);
-        }
-        return result;
-      };
-    return (data) => last(solve(memory, data));
+      memory = perform(flow);
+    return (data) => first(perform(memory, data));
   }
 
   constructor () {
@@ -92,21 +109,23 @@ export default class Generator {
     for (let event of events) {
       event.handler = Generator.toHandler(event.flow);
       if (event.result) {
-        event.value = Generator.toHandler(event.result);
+        if (Array.isArray(event.result)) {
+          event.value = Generator.toHandler(event.result);
+        } else {
+          event.value = () => event.result;
+        }
       }
       this.iterator.addListner(event);
     }
   }
 
-  run (begin, end, event) {
-    const data = [];
+  run (begin, end, action) {
     this.iterator.addListner({
       name: 'solver',
-      require: [event],
-      handler: value => data.push(value[event]),
+      require: ['dateTime'],
+      handler: action,
     });
     this.iterator.start(begin, end);
-    return data;
   }
 
 }
