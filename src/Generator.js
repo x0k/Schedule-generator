@@ -22,6 +22,7 @@ const operations = {
   },
   // Data independent
   'toDate': number => new Date(number),
+  'toBool': value => value || value === 0,
   '+': a => b => a + b,
   '-': a => b => a - b,
   '/': a => b => a / b,
@@ -30,50 +31,57 @@ const operations = {
   'and': a => b => a && b,
   'or': a => b => a || b,
   'not': operand => !operand,
-  'every': list => list.every(value => !!value || value === 0),
-  'any': list => list.some(value => !!value || value === 0),
+  'every': list => list.every(operations.toBool),
+  'any': list => list.some(operations.toBool),
 };
 
 export default class Generator {
 
   static toHandler (flow) {
     let len = (array) => array.length - 1,
-      first = (array) => array[0],
       last = (array) => array[len(array)],
-      ext = (array) => array.shift(),
-      del = (array) => array.pop(),
       add = (array, value) => array.push(value),
-      isFun = (value) => typeof value === 'function',
+      isFun = (value) => typeof value === 'function' || value in operations,
       isArr = (value) => Array.isArray(value),
-      isMem = (element, params) => params.length && isFun(element) && !isFun(first(params)),
-      params = (flow, data) => {
+      memorize = (flow) => {
         let result = [];
-        for (let element of flow) {
-          if (isArr(element)) {
-            add(result, params(element, data));
-          } else {
-            if (element in operations) {
-              element = operations[element];
-            }
-            if (typeof(element) === 'function') {
-              let params = last(result);
-              if (data) {
-                add(params, data);
-              }
-              while (isMem(element, params) && (!isArr(first(params)) || data)) {
-                element = element(ext(params));
-              }
-              if (typeof(element) !== 'function') {
-                del(result);
-              }
-            }
-            add(result, element);
+        for (let i = 0; i < flow.length; i++) {
+          let el = flow[i];
+          if (el in operations) {
+            el = operations[el];
           }
+          while (isFun(el) && i < flow.length && !isFun(flow[i+1]) && !isArr(flow[i+1])) {
+            el = el(flow[++i]);
+          }
+          if (isArr(el)) {
+            el = memorize(el);
+          }
+          add(result, el);
         }
         return result;
       },
-      instructions = params(flow);
-    return (data) => last(params(instructions, data));
+      memory = memorize(flow),
+      solve = (flow, data) => {
+        let result = [];
+        for (let i = len(flow); i >= 0; i--) {
+          let el = flow[i];
+          if (isFun(el)) {
+            let params = isArr(last(result)) ? result.pop() : result;
+            while (params.length && isFun(el) && !isFun(last(flow))) {
+              el = el(params.pop());
+            }
+            if (!params.length && isFun(el)) {
+              el = el(data);
+            }
+          }
+          if (isArr(el)) {
+            el = solve(el, data);
+          }
+          add(result, el);
+        }
+        return result;
+      };
+    return (data) => last(solve(memory, data));
   }
 
   constructor () {
