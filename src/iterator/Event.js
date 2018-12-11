@@ -6,7 +6,7 @@ export default class Event {
     if (data.value) {
       this.value = data.value;
     }
-    this.listners = [];
+    this._listners = new Set();
   }
 
   get name () {
@@ -20,14 +20,15 @@ export default class Event {
   }
 
   addListner (name) {
-    this.listners.push(name);
+    this._listners.add(name);
   }
 
   delListner (name) {
-    const index = this.listners.indexOf(name);
-    if (index >= 0) {
-      this.listners.splice(index, 1);
-    }
+    this._listners.delete(name);
+  }
+
+  get listners () {
+    return this._listners;
   }
 
 }

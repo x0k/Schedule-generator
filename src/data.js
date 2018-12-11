@@ -38,37 +38,37 @@ export default [
   // Calls
   {
     name: 'call1',
-    require: ['dateTime'],
+    require: [ 'minutes' ],
     flow: [ 'in', [ 'time', [ 8, 0 ], 'time', [ 9, 30 ] ] ],
     result: 1,
   },
   {
     name: 'call2',
-    require: ['dateTime'],
+    require: [ 'minutes' ],
     flow: [ 'in', [ 'time', [9, 40], 'time', [ 11, 10 ] ] ],
     result: 2,
   },
   {
     name: 'call3',
-    require: ['dateTime'],
+    require: [ 'minutes' ],
     flow: [ 'in', [ 'time', [ 11, 20 ], 'time', [ 12, 50 ] ] ],
     result: 3,
   },
   {
     name: 'call4',
-    require: ['dateTime'],
+    require: [ 'minutes' ],
     flow: [ 'in', [ 'time', [ 13, 50 ], 'time', [ 15, 20 ] ] ],
     result: 4,
   },
   {
     name: 'call5',
-    require: ['dateTime'],
+    require: [ 'minutes' ],
     flow: [ 'in', [ 'time', [ 15, 30 ], 'time', [ 17, 0 ] ] ],
     result: 5,
   },
   {
     name: 'call6',
-    require: ['dateTime'],
+    require: [ 'minutes' ],
     flow: [ 'in', [ 'time', [ 17, 10 ], 'time', [ 18, 40 ] ] ],
     result: 6
   },
@@ -91,7 +91,7 @@ export default [
   // Subjects
   {
     name: 'ERPSystem',
-    require: [ 'dateTime' ],
+    require: [ 'numerator', 'call1', 'call2', 'monday', 'days' ],
     flow: [ 'any', [[
       'every', [[ 'get', ['numerator'], 'get', ['call1'], 'any', [[
         'today', [ 'date', [9, 24] ], 'today', [ 'date', [10, 8] ], 'today', [ 'date', [10, 22] ]
@@ -103,7 +103,7 @@ export default [
   },
   {
     name: 'SED',
-    require: [ 'dateTime' ],
+    require: [ 'monday', 'denumerator', 'call2', 'call1', 'days', 'call3', 'thursday', 'numerator', 'wednesday' ],
     flow: [ 'any', [[
       'every', [[ 'get', ['monday'], 'get', ['denumerator'], 'get', ['call2'] ]],
       'every', [[ 'get', ['call1'], 'or', [
@@ -116,7 +116,7 @@ export default [
   },
   {
     name: 'Psychology',
-    require: ['dateTime'],
+    require: [ 'call3', 'days', 'monday', 'call4', 'denumerator', 'numerator' ],
     flow: [ 'or', [
       'every', [[ 'get', ['monday'], 'get', ['call3'], 'get', ['denumerator'] ]],
       'every', [[ 'get', ['monday'], 'get', ['call4'], 'or', [ 'get', ['numerator'], 'today', [ 'date', [17, 9] ] ] ]]
@@ -125,7 +125,7 @@ export default [
   },
   {
     name: 'Reengineering',
-    require: ['dateTime'],
+    require: [ 'tuesday', 'call2', 'days' ],
     flow: [ 'or', [
       'and', [ 'get', ['tuesday'], 'get', ['call2'] ],
       'and', [ 'today', [ 'date', [19, 12] ], 'get', ['call2'] ]
@@ -134,7 +134,7 @@ export default [
   },
   {
     name: 'Projecting',
-    require: ['dateTime'],
+    require: [ 'call3', 'days', 'wednesday', 'call1', 'call2', 'numerator', 'call5' ],
     flow: [ 'any', [[
       'and', [ 'get', ['call3'], 'or', [ 'today', [ 'date', [11, 12] ], 'today', [ 'date', [18, 12] ] ] ],
       'every', [[ 'get', ['wednesday'], 'get', ['call1'], 'get', ['numerator'] ]],
@@ -145,7 +145,7 @@ export default [
   },
   {
     name: 'Graphics',
-    require: ['dateTime'],
+    require: [ 'wednesday', 'friday', 'numerator', 'call3', 'call6', 'call5', 'days' ],
     flow: [ 'or', [
       'every', [[ 'get', ['wednesday'], 'get', ['call3'], 'before', [ 'date', [4, 10] ] ]],
       'every', [[ 'get', ['friday'], 'get', ['numerator'], 'or', [ 'get', ['call5'], 'get', ['call6'] ] ]]
@@ -154,7 +154,7 @@ export default [
   },
   {
     name: 'Corporate',
-    require: ['dateTime'],
+    require: [ 'wednesday', 'call4', 'denumerator', 'days', 'call5' ],
     flow: [ 'or', [
       'every', [[ 'get', ['wednesday'], 'get', ['call4'], 'get', ['denumerator'], 'before', [ 'date', [13, 12] ] ]],
       'and', [ 'or', [ 'get', ['call4'], 'get', ['call5'] ], 'any', [[
@@ -165,7 +165,7 @@ export default [
   },
   {
     name: 'KnowledgeEngineering',
-    require: ['dateTime'],
+    require: [ 'thursday', 'denumerator', 'call4', 'call5', 'call6', 'days' ],
     flow: [ 'every', [[
       'get', ['thursday'], 'get', ['denumerator'],
       'any', [[ 'get', ['call4'], 'get', ['call5'], 'get', ['call6'] ]],
@@ -175,7 +175,7 @@ export default [
   },
   {
     name: 'ITRegion',
-    require: ['dateTime'],
+    require: [ 'saturday', 'call2', 'call3', 'call4', 'days', 'numerator' ],
     flow: [ 'any', [[
       'every', [[ 'get', ['saturday'], 'get', ['call2'], 'in', [ 'date', [5, 10], 'date', [9, 12] ] ]],
       'every', [[ 'get', ['saturday'], 'get', ['call3'], 'get', ['numerator'], 'after', [ 'date', [12, 10] ] ]],
@@ -187,7 +187,7 @@ export default [
   },
   {
     name: 'subjects',
-    require: ['ERPSystem', 'SED', 'Psychology', 'Reengineering', 'Projecting', 'Graphics', 'Corporate', 'KnowledgeEngineering', 'ITRegion'],
+    require: [ 'ERPSystem', 'SED', 'Psychology', 'Reengineering', 'Projecting', 'Graphics', 'Corporate', 'KnowledgeEngineering', 'ITRegion' ],
     flow: [ 'any', [[
       'get', ['ERPSystem'], 'get', ['SED'], 'get', ['Psychology'], 'get', ['Reengineering'],
       'get', ['Projecting'], 'get', ['Graphics'], 'get', ['Corporate'], 'get', ['KnowledgeEngineering'], 'get', ['ITRegion']

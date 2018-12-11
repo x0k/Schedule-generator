@@ -21,9 +21,6 @@ export default class Grouper {
   }
 
   add (val) {
-    if (val.subjects) {
-      console.log(val.subjects);
-    }
     const len = this.groups.length,
       last = (len > 0) ? this.groups[len - 1] : null,
       value = val.subjects;

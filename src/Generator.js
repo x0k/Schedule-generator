@@ -122,7 +122,7 @@ export default class Generator {
   run (begin, end, action) {
     this.iterator.addListner({
       name: 'solver',
-      require: ['dateTime'],
+      require: [ 'minutes' ],
       handler: action,
     });
     this.iterator.start(begin, end);

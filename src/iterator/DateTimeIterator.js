@@ -1,5 +1,5 @@
 import DateTime from './DateTime';
-import DateTimeEvent from './DateTimeEvent';
+import Event from './Event';
 import EventProvider from './EventProvider';
 
 export default class DateTimeIterator extends EventProvider {
@@ -49,7 +49,7 @@ export default class DateTimeIterator extends EventProvider {
       },
     ];
     for (let event of events) {
-      this.addEvent(new DateTimeEvent(event));
+      this.addEvent(new Event(event));
     }
   }
 
@@ -57,38 +57,31 @@ export default class DateTimeIterator extends EventProvider {
     const dateTime = new DateTime(begin),
       onChange = this.emit.bind(this);
     // Init values
-    const events = ['dateTime', 'minutes', 'hours', 'days', 'day', 'weeks', 'months', 'years'];
+    const events = [ 'dateTime', 'minutes', 'hours', 'days', 'day', 'weeks', 'months', 'years' ];
     for (const name of events) {
       this.emit(name, dateTime);
     }
     // Start
     while (dateTime.before(end)) {
+      this.clear();
       dateTime.next(onChange);
     }
   }
 
   addListner (listner) {
-    let target = null;
+    let targets = [];
     // Check required events and define target
-    for (const eventName of listner.require) {
-      if (this.hasEvent(eventName)) {
-        const event = this.getEvent(eventName);
-        if (!target) {
-          target = event;
-        } else if (event.level <= target.level) {
-          target = event;
-        }
+    for (let event of listner.require) {
+      if (this.hasEvent(event)) {
+        targets.push(this.getEvent(event));
       } else {
         throw new Error(`Required event: ${event} - not found.`);
       }
     }
-    if (target) {
+    for (let target of targets) {
       target.addListner(listner.name);
-      listner.level = target.level;
-    } else {
-      throw new Error(`Target not found for ${listner.name}`);
     }
-    this.addEvent(new DateTimeEvent(listner));
+    this.addEvent(new Event(listner));
   }
 
 }
