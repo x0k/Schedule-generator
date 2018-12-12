@@ -4,84 +4,67 @@ import EventProvider from './EventProvider';
 
 export default class DateTimeIterator extends EventProvider {
 
+  _raiseEvent (name, ...args) {
+    let event = this.initialEvents[name];
+    this.emit(event, ...args);
+  }
+
   constructor () {
     super();
     const events = [
       {
-        name: 'dateTime',
-        handler: (data, dt) => dt,
-        level: 0,
-      },
-      {
-        name: 'minutes',
-        handler: (data, dt) => dt.minutes,
-        level: 0,
-      },
-      {
-        name: 'hours',
-        handler: (data, dt) => dt.hours,
-        level: 1,
-      },
-      {
-        name: 'days',
-        handler: (data, dt) => dt.date,
-        level: 2,
-      },
-      {
-        name: 'day',
-        handler: (data, dt) => dt.day,
-        level: 2,
-      },
-      {
-        name: 'weeks',
-        handler: (data, dt) => dt.week,
-        level: 3
+        name: 'years',
+        handler: (data, dt) => dt.year,
       },
       {
         name: 'months',
         handler: (data, dt) => dt.month,
-        level: 4
       },
       {
-        name: 'years',
-        handler: (data, dt) => dt.year,
-        level: 5,
+        name: 'weeks',
+        handler: (data, dt) => dt.week,
+      },
+      {
+        name: 'day',
+        handler: (data, dt) => dt.day,
+      },
+      {
+        name: 'days',
+        handler: (data, dt) => dt.date,
+      },
+      {
+        name: 'hours',
+        handler: (data, dt) => dt.hours,
+      },
+      {
+        name: 'minutes',
+        handler: (data, dt) => dt.minutes,
+      },
+      {
+        name: 'dateTime',
+        handler: (data, dt) => dt,
       },
     ];
-    for (let event of events) {
-      this.addEvent(new Event(event));
+    this.initialEvents = {};
+    for (let data of events) {
+      this.initialEvents[data.name] = new Event(data);
+      this.addEvent(this.initialEvents[data.name]);
     }
   }
 
-  start (begin, end) {
+  async start (begin, end) {
     const dateTime = new DateTime(begin),
-      onChange = this.emit.bind(this);
-    // Init values
-    const events = [ 'dateTime', 'minutes', 'hours', 'days', 'day', 'weeks', 'months', 'years' ];
-    for (const name of events) {
-      this.emit(name, dateTime);
-    }
+      onChange = this._raiseEvent.bind(this);
     // Start
     while (dateTime.before(end)) {
-      this.clear();
       dateTime.next(onChange);
     }
   }
 
-  addListner (listner) {
-    let targets = [];
-    // Check required events and define target
-    for (let event of listner.require) {
-      if (this.hasEvent(event)) {
-        targets.push(this.getEvent(event));
-      } else {
-        throw new Error(`Required event: ${event} - not found.`);
-      }
-    }
-    for (let target of targets) {
-      target.addListner(listner.name);
-    }
-    this.addEvent(new Event(listner));
+  addEvent (data) {
+    // TODO: Check if this event exist then update them
+    let event = new Event(data);
+    super.addEvent(event);
   }
 
 }

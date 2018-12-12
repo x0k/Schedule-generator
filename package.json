@@ -1,7 +1,26 @@
 {
-  "dependencies": {
+  "dependencies": {},
+  "name": "shedule-generator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
-    "fast-equals": "^1.6.1"
-  }
+    "mjs-mocha": "^2.1.2",
+    "mocha": "^5.2.0"
+  },
+  "scripts": {
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/x0k/Schedule-generator.git"
+  },
+  "author": "x0k <x0kill@ya.ru>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/x0k/Schedule-generator/issues"
+  },
+  "homepage": "https://github.com/x0k/Schedule-generator#readme",
+  "description": ""
 }

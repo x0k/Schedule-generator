@@ -2,29 +2,34 @@ export default class Event {
 
   constructor (data) {
     this._name = data.name;
-    this.handler = data.handler;
+    this._handler = data.handler;
     if (data.value) {
-      this.value = data.value;
+      this._value = data.value;
     }
-    this._listners = new Set();
+    this._require = new Set(data.require || []);
+    this._listners = [];
+  }
+
+  getValue (data, result) {
+    if (this._value)
+      return this._value(data, result);
+    return result;
+  }
+
+  addListner (name) {
+    this._listners.push(name);
   }
 
   get name () {
     return this._name;
   }
 
-  getValue (data, result) {
-    if (this.value)
-      return this.value(data);
-    return result;
+  get handler () {
+    return this._handler;
   }
 
-  addListner (name) {
-    this._listners.add(name);
-  }
-
-  delListner (name) {
-    this._listners.delete(name);
+  get require () {
+    return this._require;
   }
 
   get listners () {

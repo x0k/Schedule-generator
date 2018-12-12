@@ -105,7 +105,7 @@ export default class Generator {
     this.iterator = new DateTimeIterator();
   }
 
-  load (events) {
+  async load (events) {
     for (let event of events) {
       event.handler = Generator.toHandler(event.flow);
       if (event.result) {
@@ -115,17 +115,19 @@ export default class Generator {
           event.value = () => event.result;
         }
       }
-      this.iterator.addListner(event);
+      this.iterator.addEvent(event);
     }
+    return this;
   }
 
-  run (begin, end, action) {
-    this.iterator.addListner({
+  async run (begin, end, action) {
+    this.iterator.addEvent({
       name: 'solver',
-      require: [ 'minutes' ],
+      require: [ 'dateTime' ],
       handler: action,
     });
-    this.iterator.start(begin, end);
+    await this.iterator.start(begin, end);
+    return this;
   }
 
 }
