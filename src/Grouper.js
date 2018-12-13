@@ -13,17 +13,18 @@ export default class Grouper {
     }
   }
 
-  constructor (now, offsetSize) {
+  constructor (now, offsetSize, valueExtractor) {
     this.now = now;
     this.groups = [];
     this.offsetSize = Grouper.getOffsetSize(offsetSize);
     this.initialOffset = now.getTime();
+    this.extraxtor = valueExtractor;
   }
 
   add (val) {
     const len = this.groups.length,
       last = (len > 0) ? this.groups[len - 1] : null,
-      value = val.subjects;
+      value = this.extraxtor(val);
     if (!last) {
       this.groups.push({
         length: 0,
@@ -44,7 +45,7 @@ export default class Grouper {
   print () {
     for (const group of this.groups) {
       if (group.value) {
-        console.log(`${this.dateToString(group.start, group.length)} - ${group.value}`);
+        console.log(`${this.dateToString(group.start, group.length)}: ${group.value}`);
       }
     }
   }

@@ -120,10 +120,10 @@ export default class Generator {
     return this;
   }
 
-  async run (begin, end, action) {
+  async run (begin, end, partion, action) {
     this.iterator.addEvent({
       name: 'solver',
-      require: [ 'minutes' ],
+      require: [ partion ],
       handler: action,
     });
     await this.iterator.start(begin, end);
