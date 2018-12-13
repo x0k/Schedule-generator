@@ -72,7 +72,7 @@ export default class Grouper {
   dateToString (start, length) {
     const sDate = new Date(start),
       eDate = new Date(start + length);
-    return `${sDate.getDate()}.${sDate.getMonth() + 1} ${this.dayToName(sDate.getDay())} ` +
+    return `${sDate.getDate()}.${sDate.getMonth() + 1}.${sDate.getFullYear()} ${this.dayToName(sDate.getDay())} ` +
       `${sDate.getHours()}:${sDate.getMinutes()} - ${eDate.getHours()}:${eDate.getMinutes()}`;
   }
 

@@ -24,6 +24,10 @@ export default class Event {
     return this._name;
   }
 
+  set name (name) {
+    this._name = name;
+  }
+
   get handler () {
     return this._handler;
   }

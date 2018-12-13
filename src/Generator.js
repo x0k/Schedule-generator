@@ -20,6 +20,11 @@ const operations = {
     date.setMonth(m - 1, d);
     return date;
   },
+  'fullDate': y => m => d => data => {
+    const date = data['dateTime'].toDate();
+    date.setFullYear(y, m - 1, d);
+    return date;
+  },
   'map': list => data => {
     let map = {};
     for (let name of list) {

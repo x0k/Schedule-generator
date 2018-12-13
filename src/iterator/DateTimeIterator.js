@@ -47,8 +47,25 @@ export default class DateTimeIterator extends EventProvider {
 
   addEvent (data) {
     // TODO: Check if this event exist then update them
-    let event = new Event(data);
-    super.addEvent(event);
+    let name = data.name;
+    if (this.hasEvent(name)) {
+      let oldEvent = this.getEvent(name),
+        addedEvent = new Event(data),
+        oldName = name + 'Old',
+        addedName = name + 'Added',
+        newEvent = new Event({
+          name,
+          require: [ oldName, addedName ],
+          handler: (data) => data[oldName] || data[addedName],
+        });
+      oldEvent.name = oldName;
+      addedEvent.name = addedName;
+      super.addEvent(addedEvent);
+      super.addEvent(newEvent);
+    } else {
+      let event = new Event(data);
+      super.addEvent(event);
+    }
   }
 
 }
