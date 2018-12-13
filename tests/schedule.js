@@ -3,11 +3,11 @@ import Grouper from '../src/Grouper';
 import data from '../data/schedule';
 
 const beginDate = new Date(2018, 11, 3),
-  endDate = new Date(2018, 11, 4);
+  endDate = new Date(2018, 11, 29);
 
 let gen = new Generator(),
   partion = 'minutes',
-  extractor = val => val.subject,
+  extractor = val => val.subjects,
   gp = new Grouper(beginDate, partion, extractor),
   action = val => gp.add(val);
 

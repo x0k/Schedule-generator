@@ -4,8 +4,14 @@ export default [
     name: 'Babenko',
     require: [ 'minutes' ],
     flow: [ 'any', [[
-      'and', [ 'in' [ 'time' [9, 0], 'time', [10, 30] ], 'or', [ 'today', [ 'date', [1, 11] ], 'today', [ 'date', [1, 15] ] ], ],
-      'and', [ 'in' [ 'time' [10, 0], 'time', [11, 0] ], 'or', [ 'today', [ 'date', [1, 10] ], 'today', [ 'date', [1, 14] ] ], ],
+      'and', [
+        'in', [ 'time', [9, 0], 'time', [10, 30] ],
+        'or', [ 'today', [ 'date', [1, 11] ], 'today', [ 'date', [1, 15] ] ],
+      ],
+      'and', [
+        'in', [ 'time', [10, 0], 'time', [11, 0] ],
+        'or', [ 'today', [ 'date', [1, 10] ], 'today', [ 'date', [1, 14] ] ],
+      ],
     ]] ],
     result: 'Бабенко В. В.'
   },
@@ -13,7 +19,7 @@ export default [
     name: 'Mironov',
     require: [ 'minutes' ],
     flow: [ 'or', [
-      'and', [ 'today', [ 'date', [1, 19] ], 'in' [ 'time' [9, 0], 'time', [10, 30] ] ],
+      'and', [ 'today', [ 'date', [1, 19] ], 'in', [ 'time', [9, 0], 'time', [10, 30] ] ],
       'and', [ 'today', [ 'date', [1, 18] ], 'in', [ 'time', [15, 0], 'time', [16, 0] ] ],
     ] ],
     result: 'Миронов В. В.'
@@ -53,19 +59,19 @@ export default [
   {
     name: 'Reengineering',
     require: ['date'],
-    flow: [ 'in', [ 'date', [1, 10], 'date', [1, 11] ] ],
+    flow: [ 'in', [ 'date', [1, 10], 'date', [1, 12] ] ],
     result: 'Реинжиниринг и оптимизация бизнес процессов',
   },
   {
     name: 'KnowledgeEngineering',
     require: ['date'],
-    flow: [ 'in', [ 'date', [1, 18], 'date', [1, 19] ] ],
+    flow: [ 'in', [ 'date', [1, 18], 'date', [1, 20] ] ],
     result: 'Основы инженерии знаний',
   },
   {
     name: 'SystemDesign',
     require: ['date'],
-    flow: [ 'in', [ 'date', [1, 14], 'date', [1, 15] ] ],
+    flow: [ 'in', [ 'date', [1, 14], 'date', [1, 16] ] ],
     result: 'Проектирование информационных систем',
   },
   {
