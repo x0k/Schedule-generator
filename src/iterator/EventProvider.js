@@ -1,28 +1,28 @@
+import { deepEqual } from 'fast-equals';
+
 export default class EventProvider {
 
-  static _sortEvents (a, b) {
-    let ap = a.path,
-      al = ap.length,
-      bp = b.path,
-      bl = bp.length;
-    for (let i = 0; i < Math.min(al, bl); i++) {
-      let av = ap[i],
-        bv = bp[i];
-      if (av > bv) {
+  static _comparePaths (pathA, pathB) {
+    let lenA = pathA.length,
+      lenB = pathB.length;
+    for (let i = 0; i < Math.min(lenA, lenB); i++) {
+      let valA = pathA[i],
+        valB = pathB[i];
+      if (valA > valB) {
         return -1;
-      } else if (av < bv) {
+      } else if (valA < valB) {
         return 1;
       }
     }
-    if (al > bl) {
+    if (lenA > lenB) {
       return -1;
-    } else if (al < bl) {
+    } else if (lenA < lenB) {
       return 1;
     }
     return 0;
   }
 
-  static _findEvents (names, events) {
+  static _getPaths (names, events) {
     let result = [],
       path = [],
       find = nodes => {
@@ -30,7 +30,7 @@ export default class EventProvider {
           path.push(i);
           let { name, listners } = nodes[i];
           if (names.has(name)) {
-            result.push({ name, path: path.slice(0) });
+            result.push(path.slice(0));
             names.delete(name);
           }
           if (listners.length) {
@@ -43,7 +43,34 @@ export default class EventProvider {
     return result;
   }
 
-  static _getByPath (events, path) {
+  static _selectPath (paths) {
+    if (paths.length === 1)
+      return paths[0];
+    // Sort and filter paths
+    paths.sort(EventProvider._comparePaths);
+    let category = paths[0][0],
+      filteredPaths = paths.filter(path => path[0] === category);
+    if (filteredPaths.length === 1)
+      return filteredPaths[0];
+    // Extraction of the max common path
+    let path = [ category ],
+      len = Math.min(...filteredPaths.map(path => path.length));
+    for (let i = 1; i < len; i++) {
+      let standard = filteredPaths[0][i],
+        flag = true;
+      for (let j = 1; j < filteredPaths.length; j++) {
+        flag = flag && filteredPaths[j][i] === standard;
+      }
+      if (flag) {
+        path.push(standard);
+      } else {
+        break;
+      }
+    }
+    return path;
+  }
+
+  static _getEvent (events, path) {
     let result;
     while (path.length) {
       let index = path.shift();
@@ -61,11 +88,9 @@ export default class EventProvider {
 
   addEvent (event) {
     if (event.require.size) {
-      let order = EventProvider._findEvents(event.require, this._events);
-      if (order.length > 1) {
-        order.sort(EventProvider._sortEvents);
-      }
-      let parent = EventProvider._getByPath(this._events, order[0].path);
+      let paths = EventProvider._getPaths(event.require, this._events),
+        path = EventProvider._selectPath(paths),
+        parent = EventProvider._getEvent(this._events, path);
       parent.addListner(event);
     } else {
       this._events.push(event);
@@ -76,10 +101,16 @@ export default class EventProvider {
   emit (event, ...args) {
     let result = event.handler(this._values, ...args),
       value = result || result === 0 ? event.getValue(this._values, result) : null;
-    console.log(`name: ${event.name}, result: ${result}, value: ${result}`);
-    this._values[event.name] = value;
-    for (let listner of event.listners) {
-      this.emit(listner, ...args);
+    /*if (event.name === 'ERPSystem') {
+      console.log(this._values);
+      console.log(this._values['dateTime'].toString());
+      console.log(`name: ${event.name}, result: ${result}, value: ${value}`);
+    }*/
+    if (!deepEqual(this._values[event.name], value)) { 
+      this._values[event.name] = value;
+      for (let listner of event.listners) {
+        this.emit(listner, ...args);
+      }
     }
   }
 

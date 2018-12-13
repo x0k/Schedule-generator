@@ -123,7 +123,7 @@ export default class Generator {
   async run (begin, end, action) {
     this.iterator.addEvent({
       name: 'solver',
-      require: [ 'dateTime' ],
+      require: [ 'minutes' ],
       handler: action,
     });
     await this.iterator.start(begin, end);

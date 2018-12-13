@@ -86,7 +86,7 @@ export default [
   {
     name: 'denumerator',
     require: ['numerator'],
-    flow: [ 'not', [ 'numerator' ] ]
+    flow: [ 'not', [ 'get', ['numerator'] ] ]
   },
   // Subjects
   {
@@ -97,18 +97,18 @@ export default [
         'today', [ 'date', [9, 24] ], 'today', [ 'date', [10, 8] ], 'today', [ 'date', [10, 22] ]
       ]] ]],
       'every', [[ 'get', ['denumerator'], 'get', ['monday'], 'get', ['call1'], 'not', [ 'today', [ 'date', [9, 17] ] ] ]],
-      'every', [[ 'get', ['denumerator'], 'get', ['monday'], 'or', [ 'get', ['call1'], 'get', ['call2'] ], 'not', [ 'today', [ 'date', [9, 10] ] ] ]],
+      'every', [[ 'get', ['numerator'], 'get', ['monday'], 'or', [ 'get', ['call1'], 'get', ['call2'] ], 'not', [ 'today', [ 'date', [9, 10] ] ] ]],
     ]] ],
     result: 'ERP-системы',
   },
-  /*{
+  {
     name: 'SED',
-    require: [ 'monday', 'denumerator', 'call2', 'call1', 'days', 'call3', 'thursday', 'numerator', 'wednesday' ],
+    require: [ 'monday', 'denumerator', 'call2', 'call1', 'days', 'call3', 'tuesday', 'numerator', 'wednesday' ],
     flow: [ 'any', [[
       'every', [[ 'get', ['monday'], 'get', ['denumerator'], 'get', ['call2'] ]],
       'every', [[ 'get', ['call1'], 'or', [
         'and', [ 'get', ['denumerator'], 'today', [ 'date', [11, 27] ] ],
-        'every', [[ 'get', ['thursday'], 'get', ['numerator'], 'after', [ 'date', [9, 24] ] ]]
+        'every', [[ 'get', ['tuesday'], 'get', ['numerator'], 'after', [ 'date', [9, 24] ] ]]
       ] ]],
       'every', [[ 'get', ['wednesday'], 'get', ['call3'], 'in', [ 'date', [10, 10], 'date', [12, 6] ] ]]
     ]] ],
@@ -161,7 +161,7 @@ export default [
         'today', [ 'date', [9, 13] ], 'today', [ 'date', [10, 11] ], 'today', [ 'date', [11, 8] ], 'today', [ 'date', [12, 6] ], 'today', [ 'date', [12, 20] ]
       ]] ]
     ] ],
-    result: 'Корпоративные бизнес-модели в Интернет',
+    result: 'Корпоративные бизнес модели в Интернете',
   },
   {
     name: 'KnowledgeEngineering',
@@ -192,5 +192,5 @@ export default [
       'get', ['ERPSystem'], 'get', ['SED'], 'get', ['Psychology'], 'get', ['Reengineering'],
       'get', ['Projecting'], 'get', ['Graphics'], 'get', ['Corporate'], 'get', ['KnowledgeEngineering'], 'get', ['ITRegion']
     ]] ]
-  }*/
+  }
 ];

@@ -12,49 +12,33 @@ export default class DateTimeIterator extends EventProvider {
   constructor () {
     super();
     const events = [
-      {
-        name: 'years',
-        handler: (data, dt) => dt.year,
-      },
-      {
-        name: 'months',
-        handler: (data, dt) => dt.month,
-      },
-      {
-        name: 'weeks',
-        handler: (data, dt) => dt.week,
-      },
-      {
-        name: 'day',
-        handler: (data, dt) => dt.day,
-      },
-      {
-        name: 'days',
-        handler: (data, dt) => dt.date,
-      },
-      {
-        name: 'hours',
-        handler: (data, dt) => dt.hours,
-      },
-      {
-        name: 'minutes',
-        handler: (data, dt) => dt.minutes,
-      },
-      {
-        name: 'dateTime',
-        handler: (data, dt) => dt,
-      },
+      { name: 'dateTime', handler: (data, dt) => dt, },
+      { name: 'years', handler: (data, dt) => dt.year, },
+      { name: 'months', handler: (data, dt) => dt.month, },
+      { name: 'weeks', handler: (data, dt) => dt.week, },
+      { name: 'date', handler: (data, dt) => dt.date, },
+      { name: 'hours', handler: (data, dt) => dt.hours, },
+      { name: 'minutes', handler: (data, dt) => dt.minutes, },
     ];
     this.initialEvents = {};
     for (let data of events) {
       this.initialEvents[data.name] = new Event(data);
-      this.addEvent(this.initialEvents[data.name]);
+      super.addEvent(this.initialEvents[data.name]);
     }
+    this.addEvent({
+      name: 'day',
+      require: [ 'date' ],
+      handler: (data, dt) => dt.day,
+    });
   }
 
   async start (begin, end) {
     const dateTime = new DateTime(begin),
       onChange = this._raiseEvent.bind(this);
+    // Init
+    for (let event of Object.values(this.initialEvents)) {
+      this.emit(event, dateTime);
+    }
     // Start
     while (dateTime.before(end)) {
       dateTime.next(onChange);

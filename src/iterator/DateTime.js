@@ -67,7 +67,7 @@ export default class DateTime {
       || (this.year === date.getFullYear() && this.month === date.getMonth() + 1
         && this.date === date.getDate() && this.hours > date.getHours())
       || (this.year === date.getFullYear() && this.month === date.getMonth() + 1
-        && this.date === date.getDate() && this.hours === date.getHours() && this.minutes > date.getMinutes())
+        && this.date === date.getDate() && this.hours === date.getHours() && this.minutes >= date.getMinutes())
     ) {
       return true;
     }
@@ -122,7 +122,7 @@ export default class DateTime {
       this.date = 1;
       this.addMonth(level);
     }
-    level('days', this);
+    level('date', this);
   }
 
   addHours (level) {
@@ -142,8 +142,8 @@ export default class DateTime {
       this.minutes = 0;
       this.addHours(level);
     }
-    level('minutes', this);
     level('dateTime', this);
+    level('minutes', this);
   }
 
 }
