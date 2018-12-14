@@ -49,12 +49,12 @@ export default class EventProvider {
     // Sort and filter paths
     paths.sort(EventProvider._comparePaths);
     let category = paths[0][0],
+      path = [ category ],
       filteredPaths = paths.filter(path => path[0] === category);
     if (filteredPaths.length === 1)
-      return filteredPaths[0];
+      return path;
     // Extraction of the max common path
-    let path = [ category ],
-      len = Math.min(...filteredPaths.map(path => path.length));
+    let len = Math.min(...filteredPaths.map(path => path.length));
     for (let i = 1; i < len; i++) {
       let standard = filteredPaths[0][i],
         flag = true;
