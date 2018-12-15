@@ -113,7 +113,7 @@ export default class EventProvider {
     return EventProvider._getEvent(this._events, path);
   }
 
-  addEvent (event) {
+  async addEvent (event) {
     if (event.require.size) {
       let paths = EventProvider._getPaths(event.require, this._events),
         path = EventProvider._selectPath(paths),

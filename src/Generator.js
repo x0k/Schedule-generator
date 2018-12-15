@@ -1,4 +1,5 @@
 import DateTimeIterator from './DateTimeIterator';
+import Grouper from './Grouper';
 
 const operations = {
   // Data depended
@@ -106,33 +107,42 @@ export default class Generator {
     return (data) => first(perform(memory, data));
   }
 
-  constructor () {
-    this.iterator = new DateTimeIterator();
+  static toEvent (data) {
+    data.handler = Generator.toHandler(data.flow);
+    if (data.result) {
+      if (Array.isArray(data.result)) {
+        data.value = Generator.toHandler(data.result);
+      } else {
+        data.value = () => data.result;
+      }
+    }
+    return data;
   }
 
-  async load (events) {
-    for (let event of events) {
-      event.handler = Generator.toHandler(event.flow);
-      if (event.result) {
-        if (Array.isArray(event.result)) {
-          event.value = Generator.toHandler(event.result);
-        } else {
-          event.value = () => event.result;
-        }
-      }
-      this.iterator.addEvent(event);
+  constructor (partion) {
+    this.iterator = new DateTimeIterator(partion);
+    this.grouper = new Grouper(data => data['extractor']);
+    this.partion = partion;
+  }
+
+  async load (schedule) {
+    for (let data of schedule.events) {
+      let event = Generator.toEvent(data);
+      await this.iterator.addEvent(event);
     }
+    let extractor = Generator.toEvent(schedule.extractor);
+    await this.iterator.addEvent(extractor);
     return this;
   }
 
-  async run (start, end, partion, grouper) {
+  async run (start, end) {
     this.iterator.addEvent({
       name: 'grouper',
-      require: [ partion ],
-      handler: data => grouper.register(data),
+      require: [ this.partion, 'extractor' ],
+      handler: data => this.grouper.register(data),
     });
     await this.iterator.start(start, end);
-    return grouper;
+    return this.grouper.groups;
   }
 
 }

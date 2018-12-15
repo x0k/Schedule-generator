@@ -1,6 +1,6 @@
 import { deepEqual } from 'fast-equals';
 
-export class Group {
+class Group {
 
   constructor (value, dateTime) {
     this._value = value;
@@ -21,7 +21,7 @@ export class Group {
 
 }
 
-export class Grouper {
+export default class Grouper {
 
   constructor (extraxtor) {
     this._groups = [];

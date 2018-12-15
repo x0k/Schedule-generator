@@ -1,8 +1,7 @@
 import Generator from './../src/Generator';
 import schedule from '../data/schedule';
-import exams from '../data/exams';
 
-let gen = new Generator(),
+let gen = new Generator('minutes'),
   margin = 0,
   print = (name) => {
     let m = '';
@@ -22,5 +21,4 @@ let gen = new Generator(),
     margin -= 1;
   }
 gen.load(schedule)
-  .then(gen => gen.load(exams))
   .then(gen => draw(gen.iterator.events));

@@ -4,7 +4,7 @@ import EventProvider from './EventProvider';
 
 export default class DateTimeIterator extends EventProvider {
 
-  constructor () {
+  constructor (partion) {
     super();
     const events = [
       { name: 'dateTime', handler: (data, dt) => dt, },
@@ -39,7 +39,7 @@ export default class DateTimeIterator extends EventProvider {
     }
   }
 
-  addEvent (data) {
+  async addEvent (data) {
     // TODO: Check if this event exist then update them
     let name = data.name;
     if (this.hasEvent(name)) {
@@ -54,11 +54,11 @@ export default class DateTimeIterator extends EventProvider {
         });
       oldEvent.name = oldName;
       addedEvent.name = addedName;
-      super.addEvent(addedEvent);
-      super.addEvent(newEvent);
+      await super.addEvent(addedEvent);
+      await super.addEvent(newEvent);
     } else {
       let event = new Event(data);
-      super.addEvent(event);
+      await super.addEvent(event);
     }
   }
 
