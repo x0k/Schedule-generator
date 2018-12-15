@@ -1,6 +1,6 @@
 import DateTime from './DateTime';
-import Event from './Event';
-import EventProvider from './EventProvider';
+import Event from './events/Event';
+import EventProvider from './events/EventProvider';
 
 export default class DateTimeIterator extends EventProvider {
 

@@ -1,4 +1,4 @@
-import DateTimeIterator from './DateTimeIterator';
+import DateTimeIterator from './dateTime/DateTimeIterator';
 import Grouper from './Grouper';
 
 const operations = {
