@@ -1,12 +1,19 @@
 export default {
   name: '147a exams',
+  steps: 1800000,
   extractor: {
     name: 'extractor',
     require: [ 'type', 'teacher', 'subjects' ],
-    flow: [ 'every', [[ 'get', ['type'], 'get', ['teacher'], 'get', ['subject'] ]] ]
+    flow: [ 'every', [[ 'get', ['type'], 'get', ['teacher'], 'get', ['subject'] ]] ],
+    result: [ 'map', [[ 'type', 'teacher', 'subject' ]] ]
   },
   events: [
-  // Teachers
+    // Constraints
+    {
+      name: 'minutes',
+      flow: [ 'in', [ 'time', [9, 0], 'time', [16, 0] ] ]
+    },
+    // Teachers
     {
       name: 'Babenko',
       require: [ 'minutes' ],

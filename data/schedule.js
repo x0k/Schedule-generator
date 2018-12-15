@@ -1,5 +1,6 @@
 export default {
   name: '147a schedule',
+  steps: 600000,
   extractor: {
     name: 'extractor',
     require: [ 'ERPSystem', 'SED', 'Psychology', 'Reengineering', 'Projecting', 'Graphics', 'Corporate', 'KnowledgeEngineering', 'ITRegion' ],

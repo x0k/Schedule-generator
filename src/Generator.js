@@ -153,6 +153,9 @@ export default class Generator {
     }
     let extractor = Generator.toEvent(schedule.extractor);
     await this.iterator.addEvent(extractor);
+    if (schedule.steps) {
+      this.iterator.setSteps(schedule.steps);
+    }
     return this;
   }
 
@@ -170,13 +173,13 @@ export default class Generator {
     return group;
   }
 
-  async run (start, end, step = null) {
+  async run (start, end) {
     this.iterator.addEvent({
       name: 'grouper',
       require: [ 'minutes', 'extractor' ],
       handler: data => this.register(data),
     });
-    await this.iterator.start(start, end, step);
+    await this.iterator.start(start, end);
     return this.groups;
   }
 
