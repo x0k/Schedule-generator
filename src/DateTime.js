@@ -32,6 +32,38 @@ export default class DateTime {
     return milliseconds / 604800000;
   }
 
+  static dayToName (day) {
+    switch (day) {
+    case 0:
+      return 'Вс';
+    case 1:
+      return 'Пн';
+    case 2:
+      return 'Вт';
+    case 3:
+      return 'Ср';
+    case 4:
+      return 'Чт';
+    case 5:
+      return 'Пт';
+    case 6:
+      return 'Сб';
+    }
+  }
+
+  static getPartionSize (partion) {
+    switch (partion) {
+    case 'minutes':
+      return 60000;
+    case 'hours':
+      return 3600000;
+    case 'days':
+      return 86400000;
+    case 'weeks':
+      return 604800000;
+    }
+  }
+
   constructor (begin) {
     this.year = begin.getFullYear();
     this.month = begin.getMonth() + 1; // 1-12
@@ -85,6 +117,10 @@ export default class DateTime {
 
   toDate () {
     return new Date(this.year, this.month - 1, this.date, this.hours, this.minutes);
+  }
+
+  toTime () {
+    return this.toDate().getTime();
   }
 
   toString () {

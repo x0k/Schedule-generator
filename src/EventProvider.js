@@ -126,11 +126,6 @@ export default class EventProvider {
     this._eventsCount++;
   }
 
-  updateEvent (newEvent) {
-    let path = this._getEventPath(newEvent.name);
-    EventProvider._setEvent(this._events, path, newEvent);
-  }
-
   emit (event, ...args) {
     let result = event.handler(this._values, ...args),
       value = result || result === 0 ? event.getValue(this._values, result) : null;

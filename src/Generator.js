@@ -1,4 +1,4 @@
-import DateTimeIterator from './iterator/DateTimeIterator';
+import DateTimeIterator from './DateTimeIterator';
 
 const operations = {
   // Data depended
@@ -125,14 +125,14 @@ export default class Generator {
     return this;
   }
 
-  async run (begin, end, partion, action) {
+  async run (start, end, partion, grouper) {
     this.iterator.addEvent({
-      name: 'solver',
+      name: 'grouper',
       require: [ partion ],
-      handler: action,
+      handler: data => grouper.register(data),
     });
-    await this.iterator.start(begin, end);
-    return this;
+    await this.iterator.start(start, end);
+    return grouper;
   }
 
 }

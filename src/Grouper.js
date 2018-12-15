@@ -1,79 +1,49 @@
-export default class Grouper {
+import { deepEqual } from 'fast-equals';
 
-  static getOffsetSize (offsetSize) {
-    switch (offsetSize) {
-    case 'minutes':
-      return 60000;
-    case 'hours':
-      return 3600000;
-    case 'days':
-      return 86400000;
-    case 'weeks':
-      return 604800000;
-    }
+export class Group {
+
+  constructor (value, dateTime) {
+    this._value = value;
+    this._points = [ dateTime.toTime() ];
   }
 
-  constructor (now, offsetSize, valueExtractor) {
-    this.now = now;
-    this.groups = [];
-    this.offsetSize = Grouper.getOffsetSize(offsetSize);
-    this.initialOffset = now.getTime();
-    this.extraxtor = valueExtractor;
+  addPoint (dateTime) {
+    this._points.push(dateTime.toTime());
   }
 
-  add (val) {
-    const len = this.groups.length,
-      last = (len > 0) ? this.groups[len - 1] : null,
-      value = this.extraxtor(val);
-    if (!last) {
-      this.groups.push({
-        length: 0,
-        start: this.initialOffset,
-        value,
-      });
-    } else if (!(last.value === value)) {
-      this.groups.push({
-        length: this.offsetSize,
-        start: last.start + last.length,
-        value,
-      });
-    } else {
-      last.length += this.offsetSize;
-    }
+  get value () {
+    return this._value;
   }
 
-  print () {
-    for (const group of this.groups) {
-      if (group.value) {
-        console.log(`${this.dateToString(group.start, group.length)}: ${group.value}`);
+  get points () {
+    return this._points;
+  }
+
+}
+
+export class Grouper {
+
+  constructor (extraxtor) {
+    this._groups = [];
+    this._extraxtor = extraxtor;
+  }
+
+  async register (data) {
+    let dateTime = data['dateTime'],
+      value = this._extraxtor(data);
+    for (let group of this._groups) {
+      if (deepEqual(group.value, value)) {
+        group.addPoint(dateTime);
+        return group;
       }
     }
+    let group = new Group(value, dateTime);
+    this._groups.push(group);
+    return group;
   }
 
-  dayToName (day) {
-    switch (day) {
-    case 0:
-      return 'Вс';
-    case 1:
-      return 'Пн';
-    case 2:
-      return 'Вт';
-    case 3:
-      return 'Ср';
-    case 4:
-      return 'Чт';
-    case 5:
-      return 'Пт';
-    case 6:
-      return 'Сб';
-    }
-  }
-
-  dateToString (start, length) {
-    const sDate = new Date(start),
-      eDate = new Date(start + length);
-    return `${sDate.getDate()}.${sDate.getMonth() + 1}.${sDate.getFullYear()} ${this.dayToName(sDate.getDay())} ` +
-      `${sDate.getHours()}:${sDate.getMinutes()} - ${eDate.getHours()}:${eDate.getMinutes()}`;
+  get groups () {
+    return this._groups;
   }
 
 }

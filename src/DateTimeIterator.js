@@ -4,11 +4,6 @@ import EventProvider from './EventProvider';
 
 export default class DateTimeIterator extends EventProvider {
 
-  _raiseEvent (name, ...args) {
-    let event = this.initialEvents[name];
-    this.emit(event, ...args);
-  }
-
   constructor () {
     super();
     const events = [
@@ -33,15 +28,14 @@ export default class DateTimeIterator extends EventProvider {
   }
 
   async start (begin, end) {
-    const dateTime = new DateTime(begin),
-      onChange = this._raiseEvent.bind(this);
+    const dateTime = new DateTime(begin);
     // Init
     for (let event of Object.values(this.initialEvents)) {
       this.emit(event, dateTime);
     }
     // Start
     while (dateTime.before(end)) {
-      dateTime.next(onChange);
+      dateTime.next((name, ...args) => this.emit(this.initialEvents[name], ...args));
     }
   }
 
