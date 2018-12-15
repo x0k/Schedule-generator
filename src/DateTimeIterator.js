@@ -4,11 +4,6 @@ import EventProvider from './EventProvider';
 
 export default class DateTimeIterator extends EventProvider {
 
-  _raiseEvent (name, ...args) {
-    let event = this.initialEvents[name];
-    this.emit(event, ...args);
-  }
-
   constructor () {
     super();
     const events = [
@@ -33,22 +28,38 @@ export default class DateTimeIterator extends EventProvider {
   }
 
   async start (begin, end) {
-    const dateTime = new DateTime(begin),
-      onChange = this._raiseEvent.bind(this);
+    const dateTime = new DateTime(begin);
     // Init
     for (let event of Object.values(this.initialEvents)) {
       this.emit(event, dateTime);
     }
     // Start
     while (dateTime.before(end)) {
-      dateTime.next(onChange);
+      dateTime.next((name, ...args) => this.emit(this.initialEvents[name], ...args));
     }
   }
 
   addEvent (data) {
     // TODO: Check if this event exist then update them
-    let event = new Event(data);
-    super.addEvent(event);
+    let name = data.name;
+    if (this.hasEvent(name)) {
+      let oldEvent = this.getEvent(name),
+        addedEvent = new Event(data),
+        oldName = name + 'Old',
+        addedName = name + 'Added',
+        newEvent = new Event({
+          name,
+          require: [ oldName, addedName ],
+          handler: (data) => data[oldName] || data[addedName],
+        });
+      oldEvent.name = oldName;
+      addedEvent.name = addedName;
+      super.addEvent(addedEvent);
+      super.addEvent(newEvent);
+    } else {
+      let event = new Event(data);
+      super.addEvent(event);
+    }
   }
 
 }

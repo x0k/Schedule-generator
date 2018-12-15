@@ -49,12 +49,12 @@ export default class EventProvider {
     // Sort and filter paths
     paths.sort(EventProvider._comparePaths);
     let category = paths[0][0],
+      path = [ category ],
       filteredPaths = paths.filter(path => path[0] === category);
     if (filteredPaths.length === 1)
-      return filteredPaths[0];
+      return path;
     // Extraction of the max common path
-    let path = [ category ],
-      len = Math.min(...filteredPaths.map(path => path.length));
+    let len = Math.min(...filteredPaths.map(path => path.length));
     for (let i = 1; i < len; i++) {
       let standard = filteredPaths[0][i],
         flag = true;
@@ -71,19 +71,46 @@ export default class EventProvider {
   }
 
   static _getEvent (events, path) {
-    let result;
+    let event;
     while (path.length) {
       let index = path.shift();
-      result = events[index];
-      events = result.listners;
+      event = events[index];
+      events = event.listners;
     }
-    return result;
+    return event;
+  }
+
+  static _setEvent (events, path, newEvent) {
+    let event;
+    while (path.length > 1) {
+      let index = path.shift();
+      event = events[index];
+      events = event.listners;
+    }
+    event.listners[path[0]] = newEvent;
+  }
+
+  _getEventPath (name) {
+    let paths = EventProvider._getPaths(new Set([ name ]), this._events);
+    if (!paths.length)
+      throw new Error(`Event ${name} doesn't exist!`);
+    return paths[0];
   }
 
   constructor () {
     this._events = [];
+    this._eventNames = new Set();
     this._eventsCount = 0;
     this._values = {};
+  }
+
+  hasEvent (name) {
+    return this._eventNames.has(name);
+  }
+
+  getEvent (name) {
+    let path = this._getEventPath(name);
+    return EventProvider._getEvent(this._events, path);
   }
 
   addEvent (event) {
@@ -95,18 +122,14 @@ export default class EventProvider {
     } else {
       this._events.push(event);
     }
+    this._eventNames.add(event.name);
     this._eventsCount++;
   }
 
   emit (event, ...args) {
     let result = event.handler(this._values, ...args),
       value = result || result === 0 ? event.getValue(this._values, result) : null;
-    /*if (event.name === 'ERPSystem') {
-      console.log(this._values);
-      console.log(this._values['dateTime'].toString());
-      console.log(`name: ${event.name}, result: ${result}, value: ${value}`);
-    }*/
-    if (!deepEqual(this._values[event.name], value)) { 
+    if (!deepEqual(this._values[event.name], value)) {
       this._values[event.name] = value;
       for (let listner of event.listners) {
         this.emit(listner, ...args);

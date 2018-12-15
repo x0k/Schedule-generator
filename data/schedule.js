@@ -97,7 +97,7 @@ export default [
         'today', [ 'date', [9, 24] ], 'today', [ 'date', [10, 8] ], 'today', [ 'date', [10, 22] ]
       ]] ]],
       'every', [[ 'get', ['denumerator'], 'get', ['monday'], 'get', ['call1'], 'not', [ 'today', [ 'date', [9, 17] ] ] ]],
-      'every', [[ 'get', ['numerator'], 'get', ['monday'], 'or', [ 'get', ['call1'], 'get', ['call2'] ], 'not', [ 'today', [ 'date', [9, 10] ] ] ]],
+      'every', [[ 'get', ['numerator'], 'get', ['monday'], 'or', [ 'get', ['call2'], 'get', ['call3'] ], 'not', [ 'today', [ 'date', [9, 10] ] ] ]],
     ]] ],
     result: 'ERP-системы',
   },
@@ -188,9 +188,16 @@ export default [
   {
     name: 'subjects',
     require: [ 'ERPSystem', 'SED', 'Psychology', 'Reengineering', 'Projecting', 'Graphics', 'Corporate', 'KnowledgeEngineering', 'ITRegion' ],
-    flow: [ 'any', [[
+    flow: [ 'and', [
+      'in', [ 'fullDate', [2018, 9, 1], 'fullDate', [2018, 12, 29] ],
+      'any', [[
+        'get', ['ERPSystem'], 'get', ['SED'], 'get', ['Psychology'], 'get', ['Reengineering'],
+        'get', ['Projecting'], 'get', ['Graphics'], 'get', ['Corporate'], 'get', ['KnowledgeEngineering'], 'get', ['ITRegion']
+      ]]
+    ] ],
+    result: [ 'any', [[
       'get', ['ERPSystem'], 'get', ['SED'], 'get', ['Psychology'], 'get', ['Reengineering'],
       'get', ['Projecting'], 'get', ['Graphics'], 'get', ['Corporate'], 'get', ['KnowledgeEngineering'], 'get', ['ITRegion']
-    ]] ]
+    ]] ],
   }
 ];

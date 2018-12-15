@@ -1,4 +1,4 @@
-import DateTimeIterator from './iterator/DateTimeIterator';
+import DateTimeIterator from './DateTimeIterator';
 
 const operations = {
   // Data depended
@@ -18,6 +18,11 @@ const operations = {
   'date': m => d => data => {
     const date = data['dateTime'].toDate();
     date.setMonth(m - 1, d);
+    return date;
+  },
+  'fullDate': y => m => d => data => {
+    const date = data['dateTime'].toDate();
+    date.setFullYear(y, m - 1, d);
     return date;
   },
   'map': list => data => {
@@ -120,14 +125,14 @@ export default class Generator {
     return this;
   }
 
-  async run (begin, end, action) {
+  async run (start, end, partion, grouper) {
     this.iterator.addEvent({
-      name: 'solver',
-      require: [ 'minutes' ],
-      handler: action,
+      name: 'grouper',
+      require: [ partion ],
+      handler: data => grouper.register(data),
     });
-    await this.iterator.start(begin, end);
-    return this;
+    await this.iterator.start(start, end);
+    return grouper;
   }
 
 }
