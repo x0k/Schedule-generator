@@ -2,7 +2,7 @@
   "dependencies": {
     "fast-equals": "^1.6.1"
   },
-  "name": "shedule-generator",
+  "name": "schedule-generator",
   "version": "1.0.0",
   "main": "index.js",
   "devDependencies": {
