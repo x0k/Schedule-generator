@@ -66,24 +66,23 @@ export default class DateTime {
 
   constructor (begin) {
     this.year = begin.getFullYear();
-    this.month = begin.getMonth() + 1; // 1-12
-    this.week = 1; // 1 - ...
+    this.month = begin.getMonth(); // 0-11
+    this.week = 0; // 0 - ...
     this.date = begin.getDate(); // 1-31
     this.hours = begin.getHours(); // 0-23
     this.minutes = begin.getMinutes(); // 0-59
 
-    const day = begin.getDay();
-    this.day = day > 0 ? day : 7; // 1-7 from monday
+    this.day = begin.getDay(); // 0-6 from monday
   }
 
   before (date) {
     if (
       this.year < date.getFullYear()
-      || (this.year === date.getFullYear() && this.month < date.getMonth() + 1)
-      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1 && this.date < date.getDate())
-      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1
+      || (this.year === date.getFullYear() && this.month < date.getMonth())
+      || (this.year === date.getFullYear() && this.month === date.getMonth() && this.date < date.getDate())
+      || (this.year === date.getFullYear() && this.month === date.getMonth()
         && this.date === date.getDate() && this.hours < date.getHours())
-      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1
+      || (this.year === date.getFullYear() && this.month === date.getMonth()
         && this.date === date.getDate() && this.hours === date.getHours() && this.minutes < date.getMinutes())
     ) {
       return true;
@@ -94,11 +93,11 @@ export default class DateTime {
   after (date) {
     if (
       this.year > date.getFullYear()
-      || (this.year === date.getFullYear() && this.month > date.getMonth() + 1)
-      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1 && this.date > date.getDate())
-      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1
+      || (this.year === date.getFullYear() && this.month > date.getMonth())
+      || (this.year === date.getFullYear() && this.month === date.getMonth() && this.date > date.getDate())
+      || (this.year === date.getFullYear() && this.month === date.getMonth()
         && this.date === date.getDate() && this.hours > date.getHours())
-      || (this.year === date.getFullYear() && this.month === date.getMonth() + 1
+      || (this.year === date.getFullYear() && this.month === date.getMonth()
         && this.date === date.getDate() && this.hours === date.getHours() && this.minutes >= date.getMinutes())
     ) {
       return true;
@@ -107,16 +106,16 @@ export default class DateTime {
   }
 
   isToday (date) {
-    return (this.date === date.getDate()) && (this.month === date.getMonth() + 1) && (this.year === date.getFullYear());
+    return (this.date === date.getDate()) && (this.month === date.getMonth()) && (this.year === date.getFullYear());
   }
 
-  next (level) {
-    this.addMinute(level);
+  next (level, minutes) {
+    this.addMinute(level, minutes);
     return this;
   }
 
   toDate () {
-    return new Date(this.year, this.month - 1, this.date, this.hours, this.minutes);
+    return new Date(this.year, this.month, this.date, this.hours, this.minutes);
   }
 
   toTime () {
@@ -127,59 +126,61 @@ export default class DateTime {
     return `${this.year} ${this.month} ${this.date} ${this.hours} ${this.minutes}`;
   }
 
-  addYear (level) {
-    this.year++;
+  addYear (level, years) {
+    this.year += years;
     level('years', this);
   }
 
-  addMonth (level) {
-    if (this.month < 12) {
-      this.month++;
-    } else {
-      this.month = 1;
-      this.addYear(level);
-    }
+  addMonth (level, months) {
+    this._inc('month', 12, months, this.addYear, level);
     level('months', this);
   }
 
-  addDate (level) {
+  addDate (level, days) {
     // Day
-    if (this.day < 7) {
-      this.day++;
-    } else {
-      this.day = 1;
-      this.week++;
+    this.day += days;
+    let weeks = this.day > 6 ? Math.floor(this.day / 7) : 0;
+    this.day %= 7;
+    if (weeks) {
+      this.week += weeks;
       level('weeks', this);
     }
     // Date
-    if (this.date < DateTime.getMonthLength(this.year, this.month)) {
-      this.date++;
-    } else {
-      this.date = 1;
-      this.addMonth(level);
+    this.date += days;
+    let limit = 0,
+      months = 0;
+    while ((limit = DateTime.getMonthLength(this.year, this.month)) - 1 < this.date) {
+      this.date -= limit;
+      months++;
+    }
+    if (months) {
+      this.addMonth(level, months);
     }
     level('date', this);
+    level('day', this);
   }
 
-  addHours (level) {
-    if (this.hours < 23) {
-      this.hours++;
-    } else {
-      this.hours = 0;
-      this.addDate(level);
-    }
-    level('hours', this);
+  addHours (level, hours) {
+    let name = 'hours';
+    this._inc(name, 24, hours, this.addDate, level);
+    level(name, this);
   }
 
-  addMinute (level) {
-    if (this.minutes < 59) {
-      this.minutes++;
-    } else {
-      this.minutes = 0;
-      this.addHours(level);
-    }
+  addMinute (level, minutes) {
+    let name = 'minutes';
+    this._inc(name, 60, minutes, this.addHours, level);
     level('dateTime', this);
-    level('minutes', this);
+    level(name, this);
+  }
+
+  _inc(name, limit, value, action = null, level = null) {
+    this[name] += value;
+    if (this[name] > limit - 1) {
+      let count = value === 1 ? 1 : Math.floor(this[name] / limit);
+      this[name] %= limit;
+      if (action)
+        action.call(this, level, count);
+    }
   }
 
 }

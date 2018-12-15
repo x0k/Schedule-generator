@@ -1,5 +1,6 @@
 export default {
   name: '147a schedule',
+  steps: 600000,
   extractor: {
     name: 'extractor',
     require: [ 'ERPSystem', 'SED', 'Psychology', 'Reengineering', 'Projecting', 'Graphics', 'Corporate', 'KnowledgeEngineering', 'ITRegion' ],
@@ -9,6 +10,15 @@ export default {
     ]] ]
   },
   events: [
+    // Constraints
+    {
+      name: 'minutes',
+      flow: [ 'in', [ 'time', [8, 0], 'time', [19, 0] ] ]
+    },
+    {
+      name: 'day',
+      flow: [ 'not', [ 'equal', [ 0, 'day' ] ] ]
+    },
     // Days
     {
       name: 'monday',
@@ -39,11 +49,6 @@ export default {
       name: 'saturday',
       require: ['day'],
       flow: [ 'equal', [ 6, 'day' ] ]
-    },
-    {
-      name: 'sunday',
-      require: ['day'],
-      flow: [ 'equal', [ 7, 'day' ] ]
     },
     // Calls
     {
@@ -104,10 +109,10 @@ export default {
       require: [ 'numerator', 'call1', 'call2', 'monday', 'days' ],
       flow: [ 'any', [[
         'every', [[ 'get', ['numerator'], 'get', ['call1'], 'any', [[
-          'today', [ 'date', [9, 24] ], 'today', [ 'date', [10, 8] ], 'today', [ 'date', [10, 22] ]
+          'today', [ 'date', [8, 24] ], 'today', [ 'date', [9, 8] ], 'today', [ 'date', [9, 22] ]
         ]] ]],
-        'every', [[ 'get', ['denumerator'], 'get', ['monday'], 'get', ['call1'], 'not', [ 'today', [ 'date', [9, 17] ] ] ]],
-        'every', [[ 'get', ['numerator'], 'get', ['monday'], 'or', [ 'get', ['call2'], 'get', ['call3'] ], 'not', [ 'today', [ 'date', [9, 10] ] ] ]],
+        'every', [[ 'get', ['denumerator'], 'get', ['monday'], 'get', ['call1'], 'not', [ 'today', [ 'date', [8, 17] ] ] ]],
+        'every', [[ 'get', ['numerator'], 'get', ['monday'], 'or', [ 'get', ['call2'], 'get', ['call3'] ], 'not', [ 'today', [ 'date', [8, 10] ] ] ]],
       ]] ],
       result: 'ERP-системы',
     },
@@ -117,10 +122,10 @@ export default {
       flow: [ 'any', [[
         'every', [[ 'get', ['monday'], 'get', ['denumerator'], 'get', ['call2'] ]],
         'every', [[ 'get', ['call1'], 'or', [
-          'and', [ 'get', ['denumerator'], 'today', [ 'date', [11, 27] ] ],
-          'every', [[ 'get', ['tuesday'], 'get', ['numerator'], 'after', [ 'date', [9, 24] ] ]]
+          'and', [ 'get', ['denumerator'], 'today', [ 'date', [10, 27] ] ],
+          'every', [[ 'get', ['tuesday'], 'get', ['numerator'], 'after', [ 'date', [8, 24] ] ]]
         ] ]],
-        'every', [[ 'get', ['wednesday'], 'get', ['call3'], 'in', [ 'date', [10, 10], 'date', [12, 6] ] ]]
+        'every', [[ 'get', ['wednesday'], 'get', ['call3'], 'in', [ 'date', [9, 10], 'date', [11, 6] ] ]]
       ]] ],
       result: 'Системы электронного документооборота',
     },
@@ -129,7 +134,7 @@ export default {
       require: [ 'call3', 'days', 'monday', 'call4', 'denumerator', 'numerator' ],
       flow: [ 'or', [
         'every', [[ 'get', ['monday'], 'get', ['call3'], 'get', ['denumerator'] ]],
-        'every', [[ 'get', ['monday'], 'get', ['call4'], 'or', [ 'get', ['numerator'], 'today', [ 'date', [9, 17] ] ] ]]
+        'every', [[ 'get', ['monday'], 'get', ['call4'], 'or', [ 'get', ['numerator'], 'today', [ 'date', [8, 17] ] ] ]]
       ] ],
       result: 'Психология и педагогика',
     },
@@ -138,7 +143,7 @@ export default {
       require: [ 'tuesday', 'call2', 'days' ],
       flow: [ 'or', [
         'and', [ 'get', ['tuesday'], 'get', ['call2'] ],
-        'and', [ 'today', [ 'date', [12, 19] ], 'get', ['call2'] ]
+        'and', [ 'today', [ 'date', [11, 19] ], 'get', ['call2'] ]
       ] ],
       result: 'Реинжиниринг и оптимизация бизнес-процессов',
     },
@@ -146,10 +151,10 @@ export default {
       name: 'Projecting',
       require: [ 'call3', 'days', 'wednesday', 'call1', 'call2', 'numerator', 'call5' ],
       flow: [ 'any', [[
-        'and', [ 'get', ['call3'], 'or', [ 'today', [ 'date', [12, 11] ], 'today', [ 'date', [12, 18] ] ] ],
+        'and', [ 'get', ['call3'], 'or', [ 'today', [ 'date', [11, 11] ], 'today', [ 'date', [11, 18] ] ] ],
         'every', [[ 'get', ['wednesday'], 'get', ['call1'], 'get', ['numerator'] ]],
-        'every', [[ 'get', ['wednesday'], 'get', ['call2'], 'in', [ 'date', [11, 13], 'date', [12, 13] ] ]],
-        'and', [ 'today', [ 'date', [9, 5] ], 'get', ['call5'] ]
+        'every', [[ 'get', ['wednesday'], 'get', ['call2'], 'in', [ 'date', [10, 13], 'date', [11, 13] ] ]],
+        'and', [ 'today', [ 'date', [8, 5] ], 'get', ['call5'] ]
       ]] ],
       result: 'Проектирование информационных систем',
     },
@@ -157,7 +162,7 @@ export default {
       name: 'Graphics',
       require: [ 'wednesday', 'friday', 'numerator', 'call3', 'call6', 'call5', 'days' ],
       flow: [ 'or', [
-        'every', [[ 'get', ['wednesday'], 'get', ['call3'], 'before', [ 'date', [10, 4] ] ]],
+        'every', [[ 'get', ['wednesday'], 'get', ['call3'], 'before', [ 'date', [9, 4] ] ]],
         'every', [[ 'get', ['friday'], 'get', ['numerator'], 'or', [ 'get', ['call5'], 'get', ['call6'] ] ]]
       ] ],
       result: 'Основы бизнес-графики и компьютерного дизайна',
@@ -166,9 +171,9 @@ export default {
       name: 'Corporate',
       require: [ 'wednesday', 'call4', 'denumerator', 'days', 'call5' ],
       flow: [ 'or', [
-        'every', [[ 'get', ['wednesday'], 'get', ['call4'], 'get', ['denumerator'], 'before', [ 'date', [12, 13] ] ]],
+        'every', [[ 'get', ['wednesday'], 'get', ['call4'], 'get', ['denumerator'], 'before', [ 'date', [11, 13] ] ]],
         'and', [ 'or', [ 'get', ['call4'], 'get', ['call5'] ], 'any', [[
-          'today', [ 'date', [9, 13] ], 'today', [ 'date', [10, 11] ], 'today', [ 'date', [11, 8] ], 'today', [ 'date', [12, 6] ], 'today', [ 'date', [12, 20] ]
+          'today', [ 'date', [8, 13] ], 'today', [ 'date', [9, 11] ], 'today', [ 'date', [10, 8] ], 'today', [ 'date', [11, 6] ], 'today', [ 'date', [11, 20] ]
         ]] ]
       ] ],
       result: 'Корпоративные бизнес модели в Интернете',
@@ -179,7 +184,7 @@ export default {
       flow: [ 'every', [[
         'get', ['thursday'], 'get', ['denumerator'],
         'any', [[ 'get', ['call4'], 'get', ['call5'], 'get', ['call6'] ]],
-        'or', [ 'and', [ 'get', ['call6'], 'before', [ 'date', [12, 14] ] ], 'not', [ 'get', ['call6'] ] ],
+        'or', [ 'and', [ 'get', ['call6'], 'before', [ 'date', [11, 14] ] ], 'not', [ 'get', ['call6'] ] ],
       ]] ],
       result: 'Основы инженерии знаний',
     },
@@ -187,10 +192,10 @@ export default {
       name: 'ITRegion',
       require: [ 'saturday', 'call2', 'call3', 'call4', 'days', 'numerator' ],
       flow: [ 'any', [[
-        'every', [[ 'get', ['saturday'], 'get', ['call2'], 'in', [ 'date', [10, 5], 'date', [12, 9] ] ]],
-        'every', [[ 'get', ['saturday'], 'get', ['call3'], 'get', ['numerator'], 'after', [ 'date', [10, 12] ] ]],
+        'every', [[ 'get', ['saturday'], 'get', ['call2'], 'in', [ 'date', [9, 5], 'date', [11, 9] ] ]],
+        'every', [[ 'get', ['saturday'], 'get', ['call3'], 'get', ['numerator'], 'after', [ 'date', [9, 12] ] ]],
         'every', [[ 'get', ['saturday'], 'get', ['call4'], 'or', [
-          'today', [ 'date', [10, 6] ], 'today', [ 'date', [10, 20] ]
+          'today', [ 'date', [10, 6] ], 'today', [ 'date', [9, 20] ]
         ] ]],
       ]] ],
       result: 'ИТ в региональном управлении',
