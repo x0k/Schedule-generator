@@ -1,9 +1,10 @@
 import DateTimeIterator from './dateTime/DateTimeIterator';
-import Grouper from './Grouper';
+import { deepEqual } from 'fast-equals';
 
 const operations = {
   // Data depended
   'get': name => data => data[name],
+  'getDate': name => data => data['dateTime'][name],
   'equal': value => name => data => data[name] === value,
   'today': date => data => data['dateTime'].isToday(date),
   'before': value => data => data['dateTime'].before(value),
@@ -18,12 +19,12 @@ const operations = {
   },
   'date': m => d => data => {
     const date = data['dateTime'].toDate();
-    date.setMonth(m - 1, d);
+    date.setMonth(m, d);
     return date;
   },
   'fullDate': y => m => d => data => {
     const date = data['dateTime'].toDate();
-    date.setFullYear(y, m - 1, d);
+    date.setFullYear(y, m, d);
     return date;
   },
   'map': list => data => {
@@ -59,6 +60,27 @@ const operations = {
     return false;
   },
 };
+
+class Group {
+
+  constructor (value, dateTime) {
+    this._value = value;
+    this._points = [ dateTime.toTime() ];
+  }
+
+  addPoint (dateTime) {
+    this._points.push(dateTime.toTime());
+  }
+
+  get value () {
+    return this._value;
+  }
+
+  get points () {
+    return this._points;
+  }
+
+}
 
 export default class Generator {
 
@@ -119,10 +141,9 @@ export default class Generator {
     return data;
   }
 
-  constructor (partion) {
-    this.iterator = new DateTimeIterator(partion);
-    this.grouper = new Grouper(data => data['extractor']);
-    this.partion = partion;
+  constructor () {
+    this.iterator = new DateTimeIterator();
+    this.groups = [];
   }
 
   async load (schedule) {
@@ -135,14 +156,28 @@ export default class Generator {
     return this;
   }
 
-  async run (start, end) {
+  async register (data) {
+    let dateTime = data['dateTime'],
+      value = data['extractor'];
+    for (let group of this.groups) {
+      if (deepEqual(group.value, value)) {
+        group.addPoint(dateTime);
+        return group;
+      }
+    }
+    let group = new Group(value, dateTime);
+    this.groups.push(group);
+    return group;
+  }
+
+  async run (start, end, step = null) {
     this.iterator.addEvent({
       name: 'grouper',
-      require: [ this.partion, 'extractor' ],
-      handler: data => this.grouper.register(data),
+      require: [ 'minutes', 'extractor' ],
+      handler: data => this.register(data),
     });
-    await this.iterator.start(start, end);
-    return this.grouper.groups;
+    await this.iterator.start(start, end, step);
+    return this.groups;
   }
 
 }

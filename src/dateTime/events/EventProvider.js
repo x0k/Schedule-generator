@@ -128,7 +128,7 @@ export default class EventProvider {
 
   emit (event, ...args) {
     let result = event.handler(this._values, ...args),
-      value = result || result === 0 ? event.getValue(this._values, result) : null;
+      value = result || result === 0 ? event.getValue(this._values, result, ...args) : null;
     if (!deepEqual(this._values[event.name], value)) {
       this._values[event.name] = value;
       for (let listner of event.listners) {

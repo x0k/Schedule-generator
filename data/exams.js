@@ -13,11 +13,11 @@ export default {
       flow: [ 'any', [[
         'and', [
           'in', [ 'time', [9, 0], 'time', [10, 30] ],
-          'or', [ 'today', [ 'date', [1, 11] ], 'today', [ 'date', [1, 15] ] ],
+          'or', [ 'today', [ 'date', [0, 11] ], 'today', [ 'date', [0, 15] ] ],
         ],
         'and', [
           'in', [ 'time', [10, 0], 'time', [11, 0] ],
-          'or', [ 'today', [ 'date', [1, 10] ], 'today', [ 'date', [1, 14] ] ],
+          'or', [ 'today', [ 'date', [0, 10] ], 'today', [ 'date', [0, 14] ] ],
         ],
       ]] ],
       result: 'Бабенко В. В.'
@@ -26,8 +26,8 @@ export default {
       name: 'Mironov',
       require: [ 'minutes' ],
       flow: [ 'or', [
-        'and', [ 'today', [ 'date', [1, 19] ], 'in', [ 'time', [9, 0], 'time', [10, 30] ] ],
-        'and', [ 'today', [ 'date', [1, 18] ], 'in', [ 'time', [15, 0], 'time', [16, 0] ] ],
+        'and', [ 'today', [ 'date', [0, 19] ], 'in', [ 'time', [9, 0], 'time', [10, 30] ] ],
+        'and', [ 'today', [ 'date', [0, 18] ], 'in', [ 'time', [15, 0], 'time', [16, 0] ] ],
       ] ],
       result: 'Миронов В. В.'
     },
@@ -41,9 +41,9 @@ export default {
       name: 'exam',
       require: ['date'],
       flow: [ 'any', [[
-        'today', [ 'date', [1, 11] ],
-        'today', [ 'date', [1, 15] ],
-        'today', [ 'date', [1, 19] ],
+        'today', [ 'date', [0, 11] ],
+        'today', [ 'date', [0, 15] ],
+        'today', [ 'date', [0, 19] ],
       ]] ],
       result: 'Экзамен',
     },
@@ -51,9 +51,9 @@ export default {
       name: 'consultation',
       require: ['date'],
       flow: [ 'any', [[
-        'today', [ 'date', [1, 10] ],
-        'today', [ 'date', [1, 14] ],
-        'today', [ 'date', [1, 18] ],
+        'today', [ 'date', [0, 10] ],
+        'today', [ 'date', [0, 14] ],
+        'today', [ 'date', [0, 18] ],
       ]] ],
       result: 'Консультация',
     },
@@ -66,19 +66,19 @@ export default {
     {
       name: 'Reengineering',
       require: ['date'],
-      flow: [ 'in', [ 'date', [1, 10], 'date', [1, 12] ] ],
+      flow: [ 'in', [ 'date', [0, 10], 'date', [0, 12] ] ],
       result: 'Реинжиниринг и оптимизация бизнес процессов',
     },
     {
       name: 'KnowledgeEngineering',
       require: ['date'],
-      flow: [ 'in', [ 'date', [1, 18], 'date', [1, 20] ] ],
+      flow: [ 'in', [ 'date', [0, 18], 'date', [0, 20] ] ],
       result: 'Основы инженерии знаний',
     },
     {
       name: 'SystemDesign',
       require: ['date'],
-      flow: [ 'in', [ 'date', [1, 14], 'date', [1, 16] ] ],
+      flow: [ 'in', [ 'date', [0, 14], 'date', [0, 16] ] ],
       result: 'Проектирование информационных систем',
     },
     {

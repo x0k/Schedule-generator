@@ -10,9 +10,9 @@ export default class Event {
     this._listners = [];
   }
 
-  getValue (data, result) {
+  getValue (data, result, ...args) {
     if (this._value)
-      return this._value(data, result);
+      return this._value(data, result, ...args);
     return result;
   }
 
@@ -30,6 +30,10 @@ export default class Event {
 
   get handler () {
     return this._handler;
+  }
+
+  set handler (value) {
+    this._handler = value;
   }
 
   get require () {
