@@ -128,4 +128,24 @@ export default class Grouper {
     return groups;
   }
 
+  static partionToString (partion, date, locale = 'ru-RU') {
+    let loc = options => date.toLocaleString(locale, options);
+    switch (partion) {
+    case 'month':
+      return loc({ month: 'long', year: 'numeric' });
+    case 'week':
+      return loc({ month: 'short', year: 'numeric', day: 'numeric' });
+    case 'day':
+      return loc({ month: 'numeric', year: 'numeric', day: 'numeric', weekday: 'long' });
+    case 'hour':
+      return loc({ month: 'numeric', year: 'numeric', day: 'numeric', weekday: 'short', hour: 'numeric' });
+    }
+  }
+
+  static partionToTimePeriod (start, length) {
+    let d1 = new Date(start),
+      d2 = new Date(start + length);
+    return `${d1.getHours()}:${d1.getMinutes()} - ${d2.getHours()}:${d2.getMinutes()}`;
+  }
+
 }
