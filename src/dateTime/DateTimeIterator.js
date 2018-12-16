@@ -84,7 +84,7 @@ export default class DateTimeIterator extends EventProvider {
   }
 
   setStep (time) {
-    let minutes = Math.round(DateTime.toMinutes(time));
+    let minutes = Math.round(time / 60000);
     this._step = minutes || 1;
   }
 

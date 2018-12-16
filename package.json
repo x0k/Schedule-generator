@@ -3,7 +3,7 @@
     "fast-equals": "^1.6.1"
   },
   "name": "schedule-generator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "devDependencies": {
     "babel-cli": "^6.26.0",
