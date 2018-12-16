@@ -4,7 +4,7 @@ import EventProvider from './events/EventProvider';
 
 export default class DateTimeIterator extends EventProvider {
 
-  constructor (steps = 60000) {
+  constructor (step = 60000) {
     super();
     const events = [
       { name: 'dateTime', handler: (data, dt) => dt, value: (data, result, dt) => dt },
@@ -21,7 +21,7 @@ export default class DateTimeIterator extends EventProvider {
       this.initialEvents[data.name] = new Event(data);
       super.addEvent(this.initialEvents[data.name]);
     }
-    this.setSteps(steps);
+    this.setStep(step);
   }
 
   async start (begin, end) {
@@ -49,7 +49,7 @@ export default class DateTimeIterator extends EventProvider {
       dateTime.next((name, ...args) => {
         if (enabled(name, this._values))
           this.emit(this.initialEvents[name], ...args);
-      }, this._steps);
+      }, this._step);
     }
   }
 
@@ -83,9 +83,9 @@ export default class DateTimeIterator extends EventProvider {
     }
   }
 
-  setSteps (time) {
+  setStep (time) {
     let minutes = Math.round(DateTime.toMinutes(time));
-    this._steps = minutes || 1;
+    this._step = minutes || 1;
   }
 
 }

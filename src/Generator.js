@@ -147,21 +147,26 @@ export default class Generator {
   }
 
   async load (schedule) {
+    // Load events
     for (let data of schedule.events) {
       let event = Generator.toEvent(data);
       await this.iterator.addEvent(event);
     }
+    // Load extractor
+    let name = schedule.name;
+    this.schedule = schedule.extractor.name = name;
     let extractor = Generator.toEvent(schedule.extractor);
     await this.iterator.addEvent(extractor);
-    if (schedule.steps) {
-      this.iterator.setSteps(schedule.steps);
+    // Set step
+    if (schedule.step) {
+      this.iterator.setStep(schedule.step);
     }
-    return this;
+    return extractor;
   }
 
   async register (data) {
     let dateTime = data['dateTime'],
-      value = data['extractor'];
+      value = data[this.schedule];
     for (let group of this.groups) {
       if (deepEqual(group.value, value)) {
         group.addPoint(dateTime);
@@ -175,8 +180,8 @@ export default class Generator {
 
   async run (start, end) {
     this.iterator.addEvent({
-      name: 'grouper',
-      require: [ 'minutes', 'extractor' ],
+      name: 'listener',
+      require: [ 'minutes', this.schedule ],
       handler: data => this.register(data),
     });
     await this.iterator.start(start, end);
