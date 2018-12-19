@@ -45,19 +45,19 @@ export default class Grouper {
     }
   }
 
-  static async toList (step, groups, clear = false) {
+  static async toList (step, groups, filter = false) {
     if (!groups.length)
       return [];
     let line = [],
       result = [];
     for (let group of groups) {
-      line.push(...group.points.map(point => ({ point, value: group.value, length: step })));
+      line.push(...group.points.map(start => ({ start, value: group.value, length: step })));
     }
-    line.sort((a,b) => a.point - b.point);
+    line.sort((a,b) => a.start - b.start);
     let last = line[0];
     for (let i = 1; i < line.length; i++) {
       let current = line[i];
-      if (last.point + last.length === current.point && deepEqual(last.value, current.value)) {
+      if (last.start + last.length === current.start && deepEqual(last.value, current.value)) {
         last.length += current.length;
       } else {
         result.push(last);
@@ -65,7 +65,7 @@ export default class Grouper {
       }
     }
     result.push(last);
-    return clear ? result.filter(el => el.value) : result;
+    return filter ? result.filter(el => el.value) : result;
   }
 
   static getPartionSize (partion) {
@@ -115,9 +115,9 @@ export default class Grouper {
     let i = 0;
     while (i < list.length) {
       let item = list[i],
-        start = Grouper.getPartionStart(partion, item.point),
+        start = Grouper.getPartionStart(partion, item.start),
         group = { start, length, items: [] };
-      while (i < list.length && item.point >= group.start && item.point < group.start + group.length) {
+      while (i < list.length && item.start >= group.start && item.start < group.start + group.length) {
         group.items.push(item);
         item = list[++i];
       }

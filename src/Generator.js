@@ -164,7 +164,7 @@ export default class Generator {
     return extractor;
   }
 
-  async register (data) {
+  register (data) {
     let dateTime = data['dateTime'],
       value = data[this.schedule];
     for (let group of this.groups) {
