@@ -61,21 +61,6 @@ export default class DateTimeIterator extends EventProvider {
         event.handler = data.handler;
       } else {
         throw new Error(`Event ${name} are exist!`);
-        /*
-        let oldEvent = this.getEvent(name),
-          addedEvent = new Event(data),
-          oldName = name + 'Old',
-          addedName = name + 'Added',
-          newEvent = new Event({
-            name,
-            require: [ oldName, addedName ],
-            handler: (data) => data[oldName] || data[addedName],
-          });
-        oldEvent.name = oldName;
-        addedEvent.name = addedName;
-        await super.addEvent(addedEvent);
-        await super.addEvent(newEvent);
-        */
       }
     } else {
       let event = new Event(data);

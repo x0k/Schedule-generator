@@ -6,7 +6,7 @@ let gen = new Generator('minutes'),
   print = (name) => {
     let m = '';
     for (let i = 1; i < margin; i++)
-      m += '  ';
+      m += '| ';
     console.log(m + name);
   },
   draw = (events) => {
@@ -21,4 +21,4 @@ let gen = new Generator('minutes'),
     margin -= 1;
   }
 gen.load(schedule)
-  .then(gen => draw(gen.iterator.events));
+  .then(event => draw(gen.iterator._events));

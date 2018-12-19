@@ -1,5 +1,5 @@
 import Generator from './../src/Generator';
-import DateTime from './../src/iterator/DateTime';
+import DateTime from './../src/dateTime/DateTime';
 
 const dt = new DateTime(new Date()),
   data = { 'dateTime': dt, 'day': 4, 'weeks': 1 };
@@ -20,4 +20,4 @@ let handler4 = Generator.toHandler([ 'odd', [ 'weeks' ] ]),
   handler5 = Generator.toHandler([ 'not', [ 'numerator' ] ])
   data['numerator'] = handler4(data);
   data5 = handler5(data);
-console.log(data3.toString());
+console.log(data5.toString());

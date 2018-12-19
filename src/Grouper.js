@@ -144,8 +144,9 @@ export default class Grouper {
 
   static partionToTimePeriod (start, length) {
     let d1 = new Date(start),
-      d2 = new Date(start + length);
-    return `${d1.getHours()}:${d1.getMinutes()} - ${d2.getHours()}:${d2.getMinutes()}`;
+      d2 = new Date(start + length),
+      zb = val => val < 10 ? '0'+val : val;
+    return `${d1.getHours()}:${zb(d1.getMinutes())} - ${d2.getHours()}:${zb(d2.getMinutes())}`;
   }
 
 }
