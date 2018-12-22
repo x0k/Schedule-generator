@@ -2,7 +2,7 @@ export default {
   name: '147a exams',
   constraints: {
     minute: {
-      step: 10
+      step: 30
     },
     date: {
       expression: [ 'in', 'fullDate', 2019, 0, 10, 'fullDate', 2019, 0, 20 ]

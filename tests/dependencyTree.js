@@ -1,5 +1,5 @@
 import Generator from './../src/Generator';
-import schedule from '../data/exams';
+import schedule from '../data/schedule';
 
 let gen = new Generator('minutes'),
   margin = 0,
