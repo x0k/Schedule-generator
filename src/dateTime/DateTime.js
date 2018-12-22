@@ -1,3 +1,37 @@
+class DatePart {
+
+  constructor (value, step = 1, hanlder = (value => value), limit = (() => Number.MAX_VALUE), limitNames = []) {
+    this._value = value;
+    this._step = step;
+    this._handler = hanlder;
+    this._limit = limit;
+    this._limitNames = limitNames;
+  }
+
+  next (value = null) {
+    this._value += value ? (value % this._step ? Math.ceil(value / this._step) * this._step : value) : this._step;
+    let limit = this._limit();
+    if (this.value < limit)
+      return 0;
+    let count = Math.floor(this._value / limit);
+    this._value %= limit;
+    return count;
+  }
+
+  get value () {
+    return this._value;
+  }
+
+  get done () {
+    return this._handler(this._value);
+  }
+
+  get limitNames () {
+    return this._limitNames;
+  }
+
+}
+
 export default class DateTime {
 
   static leapYear (year) {
@@ -8,58 +42,57 @@ export default class DateTime {
     return month === 2 ? year & 3 || !(year % 25) && year & 15 ? 28 : 29 : 30 + (month + (month >> 3) & 1);
   }
 
-  constructor (begin) {
-    this.year = begin.getFullYear();
-    this.month = begin.getMonth(); // 0-11
-    this.week = 0; // 0 - ...
-    this.date = begin.getDate(); // 1-31
-    this.hours = begin.getHours(); // 0-23
-    this.minutes = begin.getMinutes(); // 0-59
-
-    this.day = begin.getDay(); // 0-6 from monday
-  }
-
-  before (date) {
-    if (
-      this.year < date.getFullYear()
-      || (this.year === date.getFullYear() && this.month < date.getMonth())
-      || (this.year === date.getFullYear() && this.month === date.getMonth() && this.date < date.getDate())
-      || (this.year === date.getFullYear() && this.month === date.getMonth()
-        && this.date === date.getDate() && this.hours < date.getHours())
-      || (this.year === date.getFullYear() && this.month === date.getMonth()
-        && this.date === date.getDate() && this.hours === date.getHours() && this.minutes < date.getMinutes())
-    ) {
-      return true;
+  constructor (from, constraints = null) {
+    let dateParts = [
+      { name: 'year', get: date => date.getFullYear() },
+      { name: 'month', get: date => date.getMonth(), limit: () => 12, limitNames: ['year'] },
+      { name: 'date', get: date => date.getDate(), limit: () => DateTime.getMonthLength(this.year._value, this.month._value), limitNames: ['month'] },
+      { name: 'week', get: date => {
+        var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        var dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+        return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+      } },
+      { name: 'day', get: date => date.getDay(), limit: () => 7, limitNames: ['week'] },
+      { name: 'hour', get: date => date.getHours(), limit: () => 24, limitNames: ['day', 'date'] },
+      { name: 'minute', get: date => date.getMinutes(), limit: () => 60, limitNames: ['hour'] },
+    ];
+    for (let { name, get, limit, limitNames } of dateParts) {
+      let step, hanlder;
+      if (constraints && constraints[name]) {
+        let con = constraints[name];
+        if (con.step) {
+          step = con.step;
+        }
+        if (con.hanlder) {
+          hanlder = con.hanlder;
+        }
+      }
+      let alias = `_${name}`;
+      this[alias] = new DatePart(get(from), step, hanlder, limit, limitNames);
+      Object.defineProperty(this, name, { get: () => this[alias].value });
     }
-    return false;
   }
 
-  after (date) {
-    if (
-      this.year > date.getFullYear()
-      || (this.year === date.getFullYear() && this.month > date.getMonth())
-      || (this.year === date.getFullYear() && this.month === date.getMonth() && this.date > date.getDate())
-      || (this.year === date.getFullYear() && this.month === date.getMonth()
-        && this.date === date.getDate() && this.hours > date.getHours())
-      || (this.year === date.getFullYear() && this.month === date.getMonth()
-        && this.date === date.getDate() && this.hours === date.getHours() && this.minutes >= date.getMinutes())
-    ) {
-      return true;
+  next (level, name, value = null) {
+    let part = this[`_${name}`],
+      count = part.next(value),
+      flag = true;
+    if (count) {
+      for (let limit of part.limitNames) {
+        let value = this.next(level, limit, count);
+        flag = flag && (value || value === 0);
+      }
     }
-    return false;
-  }
-
-  isToday (date) {
-    return (this.date === date.getDate()) && (this.month === date.getMonth()) && (this.year === date.getFullYear());
-  }
-
-  next (level, minutes) {
-    this.addMinute(level, minutes);
-    return this;
+    if (flag) {
+      level(name, this);
+    }
+    return flag && part.done;
   }
 
   toDate () {
-    return new Date(this.year, this.month, this.date, this.hours, this.minutes);
+    return new Date(this.year, this.month, this.date, this.hour, this.minute);
   }
 
   toTime () {
@@ -67,64 +100,7 @@ export default class DateTime {
   }
 
   toString () {
-    return `${this.year} ${this.month} ${this.date} ${this.hours} ${this.minutes}`;
-  }
-
-  addYear (level, years) {
-    this.year += years;
-    level('years', this);
-  }
-
-  addMonth (level, months) {
-    this._inc('month', 12, months, this.addYear, level);
-    level('months', this);
-  }
-
-  addDate (level, days) {
-    // Day
-    this.day += days;
-    let weeks = this.day > 6 ? Math.floor(this.day / 7) : 0;
-    this.day %= 7;
-    if (weeks) {
-      this.week += weeks;
-      level('weeks', this);
-    }
-    // Date
-    this.date += days;
-    let limit = 0,
-      months = 0;
-    while ((limit = DateTime.getMonthLength(this.year, this.month)) - 1 < this.date) {
-      this.date -= limit;
-      months++;
-    }
-    if (months) {
-      this.addMonth(level, months);
-    }
-    level('date', this);
-    level('day', this);
-  }
-
-  addHours (level, hours) {
-    let name = 'hours';
-    this._inc(name, 24, hours, this.addDate, level);
-    level(name, this);
-  }
-
-  addMinute (level, minutes) {
-    let name = 'minutes';
-    this._inc(name, 60, minutes, this.addHours, level);
-    level('dateTime', this);
-    level(name, this);
-  }
-
-  _inc(name, limit, value, action = null, level = null) {
-    this[name] += value;
-    if (this[name] > limit - 1) {
-      let count = value === 1 ? 1 : Math.floor(this[name] / limit);
-      this[name] %= limit;
-      if (action)
-        action.call(this, level, count);
-    }
+    return `${this.year} ${this.month} ${this.date} ${this.hour} ${this.minute}`;
   }
 
 }

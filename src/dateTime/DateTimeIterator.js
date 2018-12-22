@@ -4,67 +4,89 @@ import EventProvider from './events/EventProvider';
 
 export default class DateTimeIterator extends EventProvider {
 
-  constructor (step = 60000) {
+  static before (dateTime, date) {
+    if (dateTime.year < date.getFullYear())
+      return true;
+    if (dateTime.year === date.getFullYear()) {
+      if (dateTime.month < date.getMonth())
+        return true;
+      if (dateTime.month === date.getMonth()) {
+        if (dateTime.date < date.getDate())
+          return true;
+        if (dateTime.date === date.getDate()) {
+          if (dateTime.hour < date.getHours())
+            return true;
+          if ((dateTime.hour === date.getHours()) && dateTime.minute < date.getMinutes())
+            return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  static after (dateTime, date) {
+    if (dateTime.year > date.getFullYear())
+      return true;
+    if (dateTime.year === date.getFullYear()) {
+      if (dateTime.month > date.getMonth())
+        return true;
+      if (dateTime.month === date.getMonth()) {
+        if (dateTime.date > date.getDate())
+          return true;
+        if (dateTime.date === date.getDate()) {
+          if (dateTime.hour > date.getHours())
+            return true;
+          if ((dateTime.hour === date.getHours()) && dateTime.minute >= date.getMinutes())
+            return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  static isToday (dateTime, date) {
+    return (dateTime.date === date.getDate()) && (dateTime.month === date.getMonth()) && (dateTime.year === date.getFullYear());
+  }
+
+  constructor () {
     super();
     const events = [
-      { name: 'dateTime', handler: (data, dt) => dt, value: (data, result, dt) => dt },
-      { name: 'years', handler: (data, dt) => dt.year, value: (data, result, dt) => dt.year },
-      { name: 'months', handler: (data, dt) => dt.month, value: (data, result, dt) => dt.month },
-      { name: 'weeks', handler: (data, dt) => dt.week, value: (data, result, dt) => dt.week },
-      { name: 'date', handler: (data, dt) => dt.date, value: (data, result, dt) => dt.date },
-      { name: 'day', handler: (data, dt) => dt.day, value: (data, result, dt) => dt.day },
-      { name: 'hours', handler: (data, dt) => dt.hours, value: (data, result, dt) => dt.hours },
-      { name: 'minutes', handler: (data, dt) => dt.minutes, value: (data, result, dt) => dt.minutes },
+      { id: 'dateTime', handler: (data, dt) => dt },
+      { id: 'year', handler: (data, dt) => dt.year },
+      { id: 'month', handler: (data, dt) => dt.month },
+      { id: 'date', handler: (data, dt) => dt.date },
+      { id: 'week', handler: (data, dt) => dt.week },
+      { id: 'day', handler: (data, dt) => dt.day },
+      { id: 'hour', handler: (data, dt) => dt.hour },
+      { id: 'minute', handler: (data, dt) => dt.minute },
     ];
     this.initialEvents = {};
     for (let data of events) {
-      this.initialEvents[data.name] = new Event(data);
-      super.addEvent(this.initialEvents[data.name]);
+      this.initialEvents[data.id] = new Event(data);
+      super.addEvent(this.initialEvents[data.id]);
     }
-    this.setStep(step);
   }
 
-  async start (begin, end) {
-    const dateTime = new DateTime(begin),
-      events = {
-        'years': 'dateTime',
-        'months': 'years',
-        'weeks': 'months',
-        'date': 'weeks',
-        'day': 'date',
-        'hours': 'day',
-        'minutes': 'hours',
-      },
-      enabled = (name, data) => {
-        let event = events[name],
-          val = data[event];
-        return val || val === 0;
-      };
+  async start (begin, end, constraints) {
+    const dateTime = new DateTime(begin, constraints);
     // Init
     for (let event of Object.values(this.initialEvents)) {
       this.emit(event, dateTime);
     }
     // Start
-    while (dateTime.before(end)) {
-      dateTime.next((name, ...args) => {
-        if (enabled(name, this._values))
-          this.emit(this.initialEvents[name], ...args);
-      }, this._step);
+    while (DateTimeIterator.before(dateTime, end)) {
+      dateTime.next((id, ...args) => this.emit(this.initialEvents[id], ...args), 'minute');
     }
   }
 
   async addEvent (data) {
-    let name = data.name;
-    if (this.hasEvent(name)) {
-      if (name in this.initialEvents) {
-        let event = this.initialEvents[name];
-        event.handler = data.handler;
-      } else {
-        throw new Error(`Event ${name} are exist!`);
-      }
+    let id = data.id;
+    if (this.hasEvent(id)) {
+      throw new Error(`Event ${id} are exist!`);
     } else {
       let event = new Event(data);
       await super.addEvent(event);
+      return event;
     }
   }
 

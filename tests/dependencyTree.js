@@ -12,7 +12,7 @@ let gen = new Generator('minutes'),
   draw = (events) => {
     margin += 1;
     for (let event of events) {
-      print(event.name);
+      print(event.id);
       let ls = event.listners;
       if (ls.length) {
         draw(ls);
@@ -21,4 +21,4 @@ let gen = new Generator('minutes'),
     margin -= 1;
   }
 gen.load(schedule)
-  .then(event => draw(gen.iterator._events));
+  .then(event => draw(gen.iterator.eventsTree));
