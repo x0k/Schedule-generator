@@ -55,7 +55,7 @@ const operations = {
     while (i < len && operations.toBool(list[i])(data)) {
       i++;
     }
-    return i === len;
+    return i === len ? list : false;
   },
   'any': (...list) => data => {
     for (let item of list) {
@@ -91,13 +91,11 @@ class Group {
 
 export default class Generator {
 
-  static toHandler (flow, require = []) {
+  static toHandler (flow) {
     let get = (array, index) => {
         let el = array[index];
         if (el in operations)
           return operations[el];
-        if (require.includes(el))
-          return () => operations.get(() => el);
         return el;
       },
       isArr = (value) => Array.isArray(value),
@@ -135,12 +133,12 @@ export default class Generator {
     this.constraints = schedule.constraints;
     // Load events
     for (let data of schedule.events) {
-      data.handler = Generator.toHandler(data.expression, data.require);
+      data.handler = Generator.toHandler(data.expression);
       await this.iterator.addEvent(data);
     }
     // Load extractor
     let extractor = schedule.extractor,
-      extHandler = Generator.toHandler(extractor.expression, extractor.require);
+      extHandler = Generator.toHandler(extractor.expression);
     extractor.id = schedule.name;
     extractor.handler = data => this.register(data['dateTime'], extHandler(data));
     return await this.iterator.addEvent(extractor);
@@ -155,7 +153,6 @@ export default class Generator {
     }
     let group = new Group(value, dateTime);
     this.groups.push(group);
-    return group;
   }
 
   async run (start, end) {

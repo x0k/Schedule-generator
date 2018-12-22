@@ -84,9 +84,9 @@ export default class DateTime {
         let value = this.next(level, limit, count);
         flag = flag && (value || value === 0);
       }
-      if (flag) {
-        level(name, this);
-      }
+    }
+    if (flag) {
+      level(name, this);
     }
     return flag && part.done;
   }

@@ -2,7 +2,7 @@ export default {
   name: '147a exams',
   constraints: {
     minute: {
-      step: 1800000
+      step: 10
     },
     date: {
       expression: [ 'in', 'fullDate', 2019, 0, 10, 'fullDate', 2019, 0, 20 ]
@@ -10,7 +10,7 @@ export default {
   },
   extractor: {
     require: [ 'type', 'teacher', 'subjects' ],
-    expression: [ 'every', [ 'type', 'teacher', 'subject' ] ],
+    expression: [ 'and', 'every', [ 'get', 'type', 'get', 'teacher', 'get', 'subject' ], 'map', [ 'type', 'teacher', 'subject' ] ],
   },
   events: [
     // Teachers
@@ -43,13 +43,13 @@ export default {
         'and', [
           'today', 'date', 0, 18,
           'in', 'time', 15, 0, 'time', 16, 0,
-        ], 'Миронов В. В.' ]
-      ],
+        ] ],
+      'Миронов В. В.' ]
     },
     {
       id: 'teacher',
       require: [ 'Babenko', 'Mironov' ],
-      expression: [ 'any', [ 'Babenko', 'Mironov' ] ]
+      expression: [ 'any', [  'get', 'Babenko', 'get', 'Mironov' ] ]
     },
     // Types
     {
@@ -73,7 +73,7 @@ export default {
     {
       id: 'type',
       require: ['exam', 'consultation'],
-      expression: [ 'any', [ 'exam', 'consultation' ] ]
+      expression: [ 'any', [ 'get', 'exam', 'get', 'consultation' ] ]
     },
     // Subjects
     {
@@ -94,7 +94,7 @@ export default {
     {
       id: 'subject',
       require: [ 'Reengineering', 'KnowledgeEngineering', 'SystemDesign' ],
-      expression: [ 'any', [ 'Reengineering', 'KnowledgeEngineering', 'SystemDesign' ] ]
+      expression: [ 'any', [ 'get', 'Reengineering', 'get', 'KnowledgeEngineering', 'get', 'SystemDesign' ] ]
     },
   ]
 };
