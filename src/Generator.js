@@ -2,59 +2,66 @@ import DateTimeIterator from './dateTime/DateTimeIterator';
 import { deepEqual } from 'fast-equals';
 
 const operations = {
-  // Data depended
-  'get': name => data => data[name],
-  'getDate': name => data => data['dateTime'][name],
-  'equal': value => name => data => data[name] === value,
-  'today': date => data => data['dateTime'].isToday(date),
-  'before': value => data => data['dateTime'].before(value),
-  'after': value => data => data['dateTime'].after(value),
-  'in': beginDate => endDate => data => operations.after(beginDate)(data) && operations.before(endDate)(data),
-  'even': name => data => data[name] % 2 === 0,
-  'odd': name => data => data[name] % 2 === 1,
-  'time': h => m => data => {
+  'get': (name) => data => data[name(data)],
+  'getDate': (name) => data => data['dateTime'][name(data)],
+  'today': (date) => data => DateTimeIterator.isToday(data['dateTime'], date(data)),
+  'before': (value) => data => DateTimeIterator.before(data['dateTime'], value(data)),
+  'after': (value) => data => DateTimeIterator.after(data['dateTime'], value(data)),
+  'in': (beginDate, endDate) => data => {
+    let a = operations.after(beginDate)(data),
+      b = operations.before(endDate)(data);
+    return a && b;
+  },
+  'even': (name) => data => data[name(data)] % 2 === 0,
+  'odd': (name) => data => data[name(data)] % 2 === 1,
+  'time': (h, m) => data => {
     const timeDate = data['dateTime'].toDate();
-    timeDate.setHours(h, m);
+    timeDate.setHours(h(data), m(data));
     return timeDate;
   },
-  'date': m => d => data => {
+  'date': (m, d) => data => {
     const date = data['dateTime'].toDate();
-    date.setMonth(m, d);
+    date.setMonth(m(data), d(data));
     return date;
   },
-  'fullDate': y => m => d => data => {
+  'fullDate': (y, m, d) => data => {
     const date = data['dateTime'].toDate();
-    date.setFullYear(y, m, d);
+    date.setFullYear(y(data), m(data), d(data));
     return date;
   },
-  'map': list => data => {
+  'map': (...list) => data => {
     let map = {};
     for (let name of list) {
-      map[name] = data[name];
+      let eName = name(data);
+      map[eName] = data[eName];
     }
     return map;
   },
-  // Data independent
-  'toDate': number => new Date(number),
-  'toBool': value => value || value === 0,
-  '+': a => b => a + b,
-  '-': a => b => a - b,
-  '/': a => b => a / b,
-  '*': a => b => a * b,
-  '=': a => b => a == b,
-  'and': a => b => a && b,
-  'or': a => b => a || b,
-  'not': operand => !operand,
-  'every': list => {
-    if (list.every(operations.toBool)) {
-      return list;
-    }
-    return false;
+  'toDate': (number) => data => new Date(number(data)),
+  'toBool': (value) => data => {
+    let val = value(data);
+    return val || val === 0;
   },
-  'any': list => {
-    for (let el of list) {
-      if (operations.toBool(el)) {
-        return el;
+  '+': (a, b) => data => a(data) + b(data),
+  '-': (a, b) => data => a(data) - b(data),
+  '/': (a, b) => data => a(data) / b(data),
+  '*': (a, b) => data => a(data) * b(data),
+  '=': (a, b) => data => a(data) == b(data),
+  'and': (a, b) => data => a(data) && b(data),
+  'or': (a, b) => data => a(data) || b(data),
+  'not': (operand) => data => !operand(data),
+  'every': (...list) => data => {
+    let len = list.length, i = 0;
+    while (i < len && operations.toBool(list[i])(data)) {
+      i++;
+    }
+    return i === len;
+  },
+  'any': (...list) => data => {
+    for (let item of list) {
+      let val = operations.toBool(item)(data);
+      if (val) {
+        return val;
       }
     }
     return false;
@@ -84,89 +91,62 @@ class Group {
 
 export default class Generator {
 
-  static toHandler (flow) {
-    let len = (array) => array.length - 1,
-      first = (array) => array[0],
-      add = (array, ...values) => array.push(...values),
-      pre = (array, ...values) => array.unshift(...values),
-      get = (array, index) => {
+  static toHandler (flow, require = []) {
+    let get = (array, index) => {
         let el = array[index];
         if (el in operations)
           return operations[el];
+        if (require.includes(el))
+          return () => operations.get(() => el);
         return el;
       },
-      isFun = (value) => typeof value === 'function',
       isArr = (value) => Array.isArray(value),
-      perform = (flow, data) => {
-        let result = [];
-        for (let i = len(flow); i >= 0; i--) {
-          let el = get(flow, i);
-          if (isArr(el)) {
-            add(result, perform(el, data));
-          } else {
-            let params;
-            if (isFun(el) && result.length) {
-              params = result.pop();
-              while (params.length && isFun(el) && !isFun(first(params)) && (!isArr(first(params)) || data)) {
-                let ps = params.shift();
-                el = el(ps);
-              }
-            }
-            if (isFun(el) && params) {
-              if (data) {
-                add(result, el(data));
-              } else {
-                add(result, el, params);
-              }
+      perform = (flow) => {
+        let parameters = [];
+        for (let i = flow.length - 1; i >= 0; i--) {
+          let element = get(flow, i);
+          if (isArr(element)) {
+            parameters.unshift(perform(element));
+          } else if (typeof(element) === 'function') {
+            if (isArr(parameters[0])) {
+              parameters.unshift(element(...parameters.shift()));
             } else {
-              pre(result, el);
+              let len = element.length;
+              parameters.unshift(len ? element(...parameters.splice(0, len)) : element());
             }
+          } else {
+            parameters.unshift(() => element);
           }
         }
-        return result;
+        return parameters;
       },
-      memory = perform(flow);
-    return (data) => first(perform(memory, data));
-  }
-
-  static toEvent (data) {
-    data.handler = Generator.toHandler(data.flow);
-    if (data.result) {
-      if (Array.isArray(data.result)) {
-        data.value = Generator.toHandler(data.result);
-      } else {
-        data.value = () => data.result;
-      }
-    }
-    return data;
+      expression = perform(flow)[0];
+    return (data) => expression(data);
   }
 
   constructor () {
     this.iterator = new DateTimeIterator();
     this.groups = [];
+    this.constraints = {};
   }
 
   async load (schedule) {
+    // Load constraints
+    this.constraints = schedule.constraints;
     // Load events
     for (let data of schedule.events) {
-      let event = Generator.toEvent(data);
-      await this.iterator.addEvent(event);
+      data.handler = Generator.toHandler(data.expression, data.require);
+      await this.iterator.addEvent(data);
     }
     // Load extractor
-    let name = schedule.name;
-    this.schedule = schedule.extractor.name = name;
-    let extractor = Generator.toEvent(schedule.extractor);
-    await this.iterator.addEvent(extractor);
-    // Set step
-    if (schedule.step) {
-      this.iterator.setStep(schedule.step);
-    }
-    return extractor;
+    let extractor = schedule.extractor,
+      extHandler = Generator.toHandler(extractor.expression, extractor.require);
+    extractor.id = schedule.name;
+    extractor.handler = data => this.register(data['dateTime'], extHandler(data));
+    return await this.iterator.addEvent(extractor);
   }
 
-  register (data) {
-    let dateTime = data['dateTime'],
-      value = data[this.schedule];
+  register (dateTime, value) {
     for (let group of this.groups) {
       if (deepEqual(group.value, value)) {
         group.addPoint(dateTime);
@@ -179,12 +159,7 @@ export default class Generator {
   }
 
   async run (start, end) {
-    this.iterator.addEvent({
-      name: 'listener',
-      require: [ 'minutes', this.schedule ],
-      handler: data => this.register(data),
-    });
-    await this.iterator.start(start, end);
+    await this.iterator.start(start, end, this.constraints);
     return this.groups;
   }
 

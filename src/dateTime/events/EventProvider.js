@@ -22,16 +22,16 @@ export default class EventProvider {
     return 0;
   }
 
-  static _getPaths (names, events) {
+  static _getPaths (identifiers, events) {
     let result = [],
       path = [],
       find = nodes => {
         for (let i = 0; i < nodes.length; i++) {
           path.push(i);
-          let { name, listners } = nodes[i];
-          if (names.has(name)) {
+          let { id, listners } = nodes[i];
+          if (identifiers.has(id)) {
             result.push(path.slice(0));
-            names.delete(name);
+            identifiers.delete(id);
           }
           if (listners.length) {
             find(listners);
@@ -70,67 +70,54 @@ export default class EventProvider {
     return path;
   }
 
-  static _getEvent (events, path) {
+  static _getEvent (tree, path) {
     let event;
     while (path.length) {
       let index = path.shift();
-      event = events[index];
-      events = event.listners;
+      event = tree[index];
+      tree = event.listners;
     }
     return event;
   }
 
-  static _setEvent (events, path, newEvent) {
-    let event;
-    while (path.length > 1) {
-      let index = path.shift();
-      event = events[index];
-      events = event.listners;
-    }
-    event.listners[path[0]] = newEvent;
-  }
-
-  _getEventPath (name) {
-    let paths = EventProvider._getPaths(new Set([ name ]), this._events);
+  _getEventPath (id) {
+    let paths = EventProvider._getPaths(new Set([ id ]), this._events);
     if (!paths.length)
-      throw new Error(`Event ${name} doesn't exist!`);
+      throw new Error(`Event ${id} doesn't exist!`);
     return paths[0];
   }
 
   constructor () {
-    this._events = [];
-    this._eventNames = new Set();
-    this._eventsCount = 0;
+    this._events = new Set();
+    this._tree = [];
     this._values = {};
   }
 
-  hasEvent (name) {
-    return this._eventNames.has(name);
+  hasEvent (id) {
+    return this._events.has(id);
   }
 
-  getEvent (name) {
-    let path = this._getEventPath(name);
-    return EventProvider._getEvent(this._events, path);
+  getEvent (id) {
+    let path = this._getEventPath(id);
+    return EventProvider._getEvent(this._tree, path);
   }
 
-  async addEvent (event) {
-    if (event.require.size) {
-      let paths = EventProvider._getPaths(event.require, this._events),
-        path = EventProvider._selectPath(paths),
-        parent = EventProvider._getEvent(this._events, path);
+  addEvent (event) {
+    if (event.require && event.require.size) {
+      let paths = EventProvider._getPaths(event.require, this._tree);
+      let path = EventProvider._selectPath(paths),
+        parent = EventProvider._getEvent(this._tree, path);
       parent.addListner(event);
     } else {
-      this._events.push(event);
+      this._tree.push(event);
     }
-    this._eventNames.add(event.name);
-    this._eventsCount++;
+    this._events.add(event.id);
   }
 
   emit (event, ...args) {
-    let result = event.handler(this._values, ...args),
-      value = result || result === 0 ? event.getValue(this._values, result, ...args) : null;
-    if (!deepEqual(this._values[event.name], value)) {
-      this._values[event.name] = value;
+    let value = event.handler(this._values, ...args);
+    if (!deepEqual(this._values[event.id], value)) {
+      this._values[event.id] = value;
       for (let listner of event.listners) {
         this.emit(listner, ...args);
       }
@@ -139,6 +126,10 @@ export default class EventProvider {
 
   get events () {
     return this._events;
+  }
+
+  get eventsTree () {
+    return this._tree;
   }
 
 }
