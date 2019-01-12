@@ -1,8 +1,8 @@
-import DateTime from './DateTime';
-import Event from './events/Event';
-import EventProvider from './events/EventProvider';
+import DateTime from './dateTime';
+import RuleResolver from './rules/ruleResolver';
+import Rule from './rules/rule';
 
-export default class DateTimeIterator extends EventProvider {
+export default class DateTimeIterator extends RuleResolver {
 
   static before (dateTime, date) {
     if (dateTime.year < date.getFullYear())
@@ -50,7 +50,7 @@ export default class DateTimeIterator extends EventProvider {
 
   constructor () {
     super();
-    const events = [
+    const rules = [
       { id: 'dateTime', handler: (data, dt) => dt },
       { id: 'year', handler: (data, dt) => dt.year },
       { id: 'month', handler: (data, dt) => dt.month },
@@ -60,39 +60,27 @@ export default class DateTimeIterator extends EventProvider {
       { id: 'hour', handler: (data, dt) => dt.hour },
       { id: 'minute', handler: (data, dt) => dt.minute },
     ];
-    this.initialEvents = {};
-    for (let data of events) {
-      this.initialEvents[data.id] = new Event(data);
-      super.addEvent(this.initialEvents[data.id]);
+    this.initialRules = [];
+    for (let rule of rules) {
+      this.initialRules.push(rule.id);
+      this.addRule(rule);
     }
+  }
+
+  addRule (data) {
+    return super.addRule(new Rule(data));
   }
 
   async start (begin, end, constraints) {
     const dateTime = new DateTime(begin, constraints);
     // Init
-    for (let event of Object.values(this.initialEvents)) {
-      this.emit(event, dateTime);
+    for (let id of this.initialRules) {
+      this.emit(id, dateTime);
     }
     // Start
     while (DateTimeIterator.before(dateTime, end)) {
-      dateTime.next((id, ...args) => this.emit(this.initialEvents[id], ...args), 'minute');
+      dateTime.next(this.emit.bind(this), 'minute');
     }
-  }
-
-  async addEvent (data) {
-    let id = data.id;
-    if (this.hasEvent(id)) {
-      throw new Error(`Event ${id} are exist!`);
-    } else {
-      let event = new Event(data);
-      await super.addEvent(event);
-      return event;
-    }
-  }
-
-  setStep (time) {
-    let minutes = Math.round(time / 60000);
-    this._step = minutes || 1;
   }
 
 }

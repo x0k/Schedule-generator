@@ -1,5 +1,5 @@
-import Generator from '../src/Generator';
-import Grouper from '../src/Grouper';
+import Generator from '../src/generator';
+import Grouper from '../src/grouper';
 import data from '../data/exams';
 import time from './time';
 
@@ -9,13 +9,13 @@ const beginDate = new Date(2019, 0, 10),
 
 time();
 gen.load(data)
-  .then(event => {
+  .then(rule => {
     time('Load time');
     return gen.run(beginDate, endDate);
   })
-  .then(groups => {
+  .then(events => {
     time('Calculation time');
-    return Grouper.toList(data.step, groups, true);
+    return Grouper.toList(data.step, events, true);
   })
   .then(data => Grouper.groupBy('day', data))
   .then(grouped => console.log(grouped));
