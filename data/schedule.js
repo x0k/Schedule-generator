@@ -15,7 +15,7 @@ export default {
       'get', ['Projecting'], 'get', ['Graphics'], 'get', ['Corporate'], 'get', ['KnowledgeEngineering'], 'get', ['ITRegion']
     ] ]
   },
-  events: [
+  rules: [
     // Days
     {
       id: 'monday',

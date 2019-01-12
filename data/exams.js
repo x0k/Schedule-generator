@@ -12,7 +12,7 @@ export default {
     require: [ 'type', 'teacher', 'subjects' ],
     expression: [ 'and', 'every', [ 'get', 'type', 'get', 'teacher', 'get', 'subject' ], 'map', [ 'type', 'teacher', 'subject' ] ],
   },
-  events: [
+  rules: [
     // Teachers
     {
       id: 'Babenko',
@@ -49,7 +49,7 @@ export default {
     {
       id: 'teacher',
       require: [ 'Babenko', 'Mironov' ],
-      expression: [ 'any', [  'get', 'Babenko', 'get', 'Mironov' ] ]
+      expression: [ 'any', [ 'get', 'Babenko', 'get', 'Mironov' ] ]
     },
     // Types
     {

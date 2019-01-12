@@ -1,5 +1,5 @@
-import Generator from '../src/Generator';
-import Grouper from '../src/Grouper';
+import Generator from '../src/generator';
+import Grouper from '../src/grouper';
 import data from '../data/schedule';
 import time from './time';
 

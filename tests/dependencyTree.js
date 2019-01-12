@@ -1,5 +1,5 @@
-import Generator from './../src/Generator';
-import schedule from '../data/schedule';
+import Generator from './../src/generator';
+import schedule from '../data/exams';
 
 let gen = new Generator('minutes'),
   margin = 0,
@@ -9,16 +9,15 @@ let gen = new Generator('minutes'),
       m += '| ';
     console.log(m + name);
   },
-  draw = (events) => {
+  draw = tree => {
     margin += 1;
-    for (let event of events) {
-      print(event.id);
-      let ls = event.listners;
-      if (ls.length) {
-        draw(ls);
+    for (let [id, values] of tree) {
+      print(id);
+      if (values.size) {
+        draw(values);
       }
     }
     margin -= 1;
   }
 gen.load(schedule)
-  .then(event => draw(gen.iterator.eventsTree));
+  .then(event => draw(gen.iterator.tree));

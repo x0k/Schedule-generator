@@ -1,4 +1,4 @@
-import DateTimeIterator from './dateTime/DateTimeIterator';
+import DateTimeIterator from './dateTime/dateTimeIterator';
 import { deepEqual } from 'fast-equals';
 
 const operations = {
@@ -47,6 +47,7 @@ const operations = {
   '/': (a, b) => data => a(data) / b(data),
   '*': (a, b) => data => a(data) * b(data),
   '=': (a, b) => data => a(data) == b(data),
+  '%': (a, b) => data => a(data) % b(data),
   'and': (a, b) => data => a(data) && b(data),
   'or': (a, b) => data => a(data) || b(data),
   'not': (operand) => data => !operand(data),
@@ -68,7 +69,7 @@ const operations = {
   },
 };
 
-class Group {
+class Event {
 
   constructor (value, dateTime) {
     this._value = value;
@@ -124,40 +125,39 @@ export default class Generator {
 
   constructor () {
     this.iterator = new DateTimeIterator();
-    this.groups = [];
+    this.events = [];
     this.constraints = {};
+  }
+
+  register (dateTime, value) {
+    for (let event of this.events) {
+      if (deepEqual(event.value, value)) {
+        event.addPoint(dateTime);
+        return event;
+      }
+    }
+    this.events.push(new Event(value, dateTime));
   }
 
   async load (schedule) {
     // Load constraints
     this.constraints = schedule.constraints;
     // Load events
-    for (let data of schedule.events) {
-      data.handler = Generator.toHandler(data.expression);
-      await this.iterator.addEvent(data);
+    for (let rule of schedule.rules) {
+      rule.handler = Generator.toHandler(rule.expression);
+      this.iterator.addRule(rule);
     }
     // Load extractor
     let extractor = schedule.extractor,
       extHandler = Generator.toHandler(extractor.expression);
     extractor.id = schedule.name;
     extractor.handler = data => this.register(data['dateTime'], extHandler(data));
-    return await this.iterator.addEvent(extractor);
-  }
-
-  register (dateTime, value) {
-    for (let group of this.groups) {
-      if (deepEqual(group.value, value)) {
-        group.addPoint(dateTime);
-        return group;
-      }
-    }
-    let group = new Group(value, dateTime);
-    this.groups.push(group);
+    return this.iterator.addRule(extractor);
   }
 
   async run (start, end) {
     await this.iterator.start(start, end, this.constraints);
-    return this.groups;
+    return this.events;
   }
 
 }
