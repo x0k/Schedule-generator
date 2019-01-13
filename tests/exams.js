@@ -14,7 +14,14 @@ gen.load(data)
   })
   .then(events => {
     time('Calculation time');
-    return Grouper.toList(data.step, events, true);
+    return Grouper.toList({
+      events,
+      constraints: data.constraints,
+      from: beginDate,
+      to: endDate,
+    });
   })
   .then(data => Grouper.groupBy('day', data))
-  .then(grouped => console.log(grouped));
+  .then(grouped => grouped.forEach(el => {
+    console.log(el.items);
+  }));

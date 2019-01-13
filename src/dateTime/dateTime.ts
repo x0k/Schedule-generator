@@ -2,8 +2,8 @@ import { DatePart } from './datePart';
 import { RuleHandler } from '../rules/rule';
 
 export interface IConstraint {
-  step: number;
-  handler: RuleHandler;
+  step?: number;
+  handler?: RuleHandler;
 }
 
 export interface IConstraints {
