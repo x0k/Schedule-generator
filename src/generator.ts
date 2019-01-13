@@ -140,7 +140,7 @@ export class Generator {
     return this.iterator.createRule({
       id: schedule.name,
       require: [ 'year', 'month', 'date', 'week', 'day', 'hour', 'minute', schedule.extractor ],
-      handler: (values) => this.register(values.dataTime, values[schedule.name]),
+      handler: (values) => this.register(values.dateTime, values[schedule.extractor]),
     });
   }
 
