@@ -2,25 +2,31 @@
   "dependencies": {
     "fast-equals": "^1.6.1"
   },
-  "name": "schedule-generator",
-  "version": "1.0.1",
-  "main": "index.js",
+  "name": "schedule-core",
+  "version": "1.1.0",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
   "devDependencies": {
     "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.7.0"
+    "babel-preset-env": "^1.7.0",
+    "tslint": "^5.12.1",
+    "typescript": "^3.2.2"
   },
+  "files": [
+    "build/**/*"
+  ],
   "scripts": {
-    "test": ""
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/x0k/Schedule-generator.git"
+    "url": "git+https://github.com/x0k/schedule-core.git"
   },
   "author": "x0k <x0kill@ya.ru>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/x0k/Schedule-generator/issues"
+    "url": "https://github.com/x0k/schedule-core.git/issues"
   },
-  "homepage": "https://github.com/x0k/Schedule-generator#readme",
-  "description": ""
+  "homepage": "https://github.com/x0k/schedule-core.git#readme",
+  "description": "Core for Project schedule - web application for viewing the complex schedules defined by the rule base"
 }
