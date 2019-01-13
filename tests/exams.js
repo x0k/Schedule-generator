@@ -1,5 +1,4 @@
-import Generator from '../src/generator';
-import Grouper from '../src/grouper';
+import { Generator, Grouper } from '../build/index';
 import data from '../data/exams';
 import time from './time';
 

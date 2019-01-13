@@ -1,4 +1,4 @@
-import Generator from './../src/generator';
+import { Generator } from '../build/index';
 import schedule from '../data/exams';
 
 let gen = new Generator('minutes'),
