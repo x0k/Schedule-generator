@@ -11,7 +11,11 @@ export interface IValues {
 
 type Getter = (data: IValues) => any;
 
-const operations: { [name: string]: any } = {
+interface IOperations {
+  [name: string]: (...values: Getter[]) => Getter;
+}
+
+const operations: IOperations = {
   'get': (name: Getter) => (data: IValues) => data[name(data)],
   'getDate': (name: Getter) => (data: IValues) => data.dateTime.get(name(data)),
   'today': (date: Getter) => (data: IValues) => DateTimeIterator.isToday(data.dateTime, date(data)),
@@ -91,7 +95,7 @@ export class Generator {
         return el;
       };
     const isArr = (value: any) => Array.isArray(value);
-    const perform = (flow: any[]) => {
+    const perform = (flow: any[]): Getter[] => {
       const parameters: any[] = [];
       for (let i = flow.length - 1; i >= 0; i--) {
         const element = get(flow, i);
@@ -131,6 +135,12 @@ export class Generator {
   public async load (schedule: ISchedule) {
     // Load constraints
     this.constraints = schedule.constraints;
+    for (const key of Object.keys(this.constraints)) {
+      const expression = schedule.constraints[key].expression;
+      if (expression) {
+        this.constraints[key].handler = Generator.toHandler(expression);
+      }
+    }
     // Load events
     for (const rule of schedule.rules) {
       rule.handler = Generator.toHandler(rule.expression);

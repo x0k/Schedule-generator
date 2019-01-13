@@ -18,8 +18,8 @@ export class RuleResolver {
     return result;
   }
 
-  private rules: { [id: string]: Rule } = {};
-  private values: { [id: string]: any } = {};
+  protected rules: { [id: string]: Rule } = {};
+  protected values: { [id: string]: any } = {};
   private tree: IRuleTree = new Map();
 
   public hasRule (id: string) {

@@ -19,8 +19,8 @@ export class DatePart {
     return count;
   }
 
-  get done () {
-    return this.handler(this.value);
+  public done (values: { [id: string]: any }) {
+    return this.handler(values);
   }
 
 }

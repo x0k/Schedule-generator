@@ -64,20 +64,20 @@ export class DateTime {
     }
   }
 
-  public next (level: RuleRise, name: string, value?: number): any {
+  public next (values: { [id: string]: any }, level: RuleRise, name: string, value?: number): any {
     const part = this.parts[name];
     const count = part.next(value);
     let flag = true;
     if (count) {
       for (const limit of part.limitNames) {
-        const val = this.next(level, limit, count);
+        const val = this.next(values, level, limit, count);
         flag = flag && (val || val === 0);
       }
     }
     if (flag) {
       level(name, this);
     }
-    return flag && part.done;
+    return flag && part.done(values);
   }
 
   public toDate () {

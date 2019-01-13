@@ -86,7 +86,7 @@ export class DateTimeIterator extends RuleResolver {
     }
     // Start
     while (DateTimeIterator.before(dateTime, end)) {
-      dateTime.next(this.emit.bind(this), 'minute');
+      dateTime.next(this.values, this.emit.bind(this), 'minute');
     }
   }
 
