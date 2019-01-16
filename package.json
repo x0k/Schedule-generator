@@ -3,7 +3,7 @@
     "fast-equals": "^1.6.1"
   },
   "name": "schedule-core",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "devDependencies": {

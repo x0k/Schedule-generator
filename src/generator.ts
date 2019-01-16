@@ -3,6 +3,7 @@ import { RuleHandler } from './rules/rule';
 import { DateTimeIterator } from './dateTime/dateTimeIterator';
 import { Event } from './event';
 import { IConstraints, DateTime } from './dateTime/dateTime';
+import { isToday, after, before } from './dateTime/dateTimeHelper';
 import { ISchedule } from './schedule';
 
 export interface IValues {
@@ -18,9 +19,9 @@ interface IOperations {
 const operations: IOperations = {
   'get': (name: Getter) => (data: IValues) => data[name(data)],
   'getDate': (name: Getter) => (data: IValues) => data.dateTime.get(name(data)),
-  'today': (date: Getter) => (data: IValues) => DateTimeIterator.isToday(data.dateTime, date(data)),
-  'before': (value: Getter) => (data: IValues) => DateTimeIterator.before(data.dateTime, value(data)),
-  'after': (value: Getter) => (data: IValues) => DateTimeIterator.after(data.dateTime, value(data)),
+  'today': (date: Getter) => (data: IValues) => isToday(data.dateTime, date(data)),
+  'before': (value: Getter) => (data: IValues) => before(data.dateTime, value(data)),
+  'after': (value: Getter) => (data: IValues) => after(data.dateTime, value(data)),
   'in': (beginDate: Getter, endDate: Getter) => (data: IValues) => {
     const a = operations.after(beginDate)(data);
     const b = operations.before(endDate)(data);

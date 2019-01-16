@@ -1,5 +1,6 @@
 import { DatePart } from './datePart';
 import { RuleHandler } from '../rules/rule';
+import { getMonthLength } from './dateHelper';
 
 export interface IConstraint {
   step?: number;
@@ -14,15 +15,6 @@ type RuleRise = (id: string, ...args: any[]) => void;
 
 export class DateTime {
 
-  public static leapYear (year: number) {
-    return ((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0);
-  }
-
-  public static getMonthLength (year: number, month: number) {
-    // tslint:disable-next-line:no-bitwise
-    return month === 2 ? year & 3 || !(year % 25) && year & 15 ? 28 : 29 : 30 + (month + (month >> 3) & 1);
-  }
-
   private parts: { [name: string]: DatePart } = {};
 
   constructor (from: Date, constraints?: IConstraints) {
@@ -32,7 +24,7 @@ export class DateTime {
       {
         name: 'date',
         get: (date: Date) => date.getDate(),
-        limit: () => DateTime.getMonthLength(this.get('year'), this.get('month')), limitNames: ['month'],
+        limit: () => getMonthLength(this.get('year'), this.get('month')), limitNames: ['month'],
       },
       {
         name: 'week',

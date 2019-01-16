@@ -1,6 +1,7 @@
 import { deepEqual } from 'fast-equals';
 import { Event } from './event';
 import { IConstraints } from './dateTime/dateTime';
+import * as Helper from './dateTime/dateHelper';
 
 export interface IPeriod {
   start: number;
@@ -37,61 +38,29 @@ export interface IToListArgs {
 
 type Partion = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute';
 
-export function getTimeBethwen (begin: Date, end: Date) {
-  return end.getTime() - begin.getTime();
-}
-
-export function toSeconds (milliseconds: number) {
-  return milliseconds / 1000;
-}
-
-export function toMinutes (milliseconds: number) {
-  return milliseconds / 60000;
-}
-
-export function toHours (milliseconds: number) {
-  return milliseconds / 3600000;
-}
-
-export function toDays (milliseconds: number) {
-  return milliseconds / 86400000;
-}
-
-export function toWeeks (milliseconds: number) {
-  return milliseconds / 604800000;
-}
-
-export function dayToName (day: number) {
-  switch (day) {
-  case 0:
-    return 'Вс';
-  case 1:
-    return 'Пн';
-  case 2:
-    return 'Вт';
-  case 3:
-    return 'Ср';
-  case 4:
-    return 'Чт';
-  case 5:
-    return 'Пт';
-  case 6:
-    return 'Сб';
-  default:
-    throw new Error(`Day ${day} doesn't exist`);
-  }
-}
-
-export function getPartionSize (partion: Partion) {
+export function getPartionSize (partion: Partion, date?: Date) {
   switch (partion) {
   case "minute":
-    return 60000;
   case "hour":
-    return 3600000;
   case "day":
-    return 86400000;
-  case 'week': // week
-    return 604800000;
+  case 'week':
+    return Helper[partion];
+  case 'month':
+    if (!date) {
+      throw new Error('Not defined date for non-static partion: month');
+    }
+    const len = Helper.getMonthLength(date.getFullYear(), date.getMonth());
+    return len * Helper.day;
+  case 'year':
+    if (!date) {
+      throw new Error('Not defined date for non-static partion: month');
+    }
+    const year = date.getFullYear();
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      sum += Helper.day * Helper.getMonthLength(year, i);
+    }
+    return sum;
   default:
     throw new Error(`Unknown size of partion: ${partion}`);
   }
@@ -125,17 +94,31 @@ export function getPartionStart (partion: Partion, begin: number) {
   return getDate().getTime();
 }
 
+export function isStaticPartion (partion: Partion) {
+  switch (partion) {
+    case 'minute':
+    case 'hour':
+    case 'day':
+    case 'week':
+      return true;
+    default:
+      return false;
+  }
+}
+
 export async function groupBy (partion: Partion, list: ILineEvent[]): Promise<IEventGroup[]> {
   if (!list.length) {
     return [];
   }
   const groups: IEventGroup[] = [];
-  const length = getPartionSize(partion);
+  const staticPartion = isStaticPartion(partion);
+  const staticLength = staticPartion ? getPartionSize(partion) : 0;
+  const getLength = staticPartion ? () => staticLength : (start: number) => getPartionSize(partion, new Date(start));
   let i = 0;
   while (i < list.length) {
     let item = list[i];
     const start = getPartionStart(partion, item.start);
-    const group: IEventGroup = { start, length, items: [] };
+    const group: IEventGroup = { start, length: getLength(start), items: [] };
     while (i < list.length && item.start >= group.start && item.start < group.start + group.length) {
       group.items.push(item);
       item = list[++i];

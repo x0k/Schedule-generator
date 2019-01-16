@@ -1,62 +1,8 @@
 import { DateTime, IConstraints } from './dateTime';
 import { RuleResolver } from '../rules/ruleResolver';
+import { before } from './dateTimeHelper';
 
 export class DateTimeIterator extends RuleResolver {
-
-  public static before (dateTime: DateTime, date: Date) {
-    if (dateTime.get('year') < date.getFullYear()) {
-      return true;
-    }
-    if (dateTime.get('year') === date.getFullYear()) {
-      if (dateTime.get('month') < date.getMonth()) {
-        return true;
-      }
-      if (dateTime.get('month') === date.getMonth()) {
-        if (dateTime.get('date') < date.getDate()) {
-          return true;
-        }
-        if (dateTime.get('date') === date.getDate()) {
-          if (dateTime.get('hour') < date.getHours()) {
-            return true;
-          }
-          if ((dateTime.get('hour') === date.getHours()) && dateTime.get('minute') < date.getMinutes()) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  public static after (dateTime: DateTime, date: Date) {
-    if (dateTime.get('year') > date.getFullYear()) {
-      return true;
-    }
-    if (dateTime.get('year') === date.getFullYear()) {
-      if (dateTime.get('month') > date.getMonth()) {
-        return true;
-      }
-      if (dateTime.get('month') === date.getMonth()) {
-        if (dateTime.get('date') > date.getDate()) {
-          return true;
-        }
-        if (dateTime.get('date') === date.getDate()) {
-          if (dateTime.get('hour') > date.getHours()) {
-            return true;
-          }
-          if ((dateTime.get('hour') === date.getHours()) && dateTime.get('minute') >= date.getMinutes()) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  public static isToday (dateTime: DateTime, date: Date) {
-    return (dateTime.get('date') === date.getDate()) &&
-      (dateTime.get('month') === date.getMonth()) && (dateTime.get('year') === date.getFullYear());
-  }
 
   private initialRules: string[] = [];
 
@@ -85,7 +31,7 @@ export class DateTimeIterator extends RuleResolver {
       this.emit(id, dateTime);
     }
     // Start
-    while (DateTimeIterator.before(dateTime, end)) {
+    while (before(dateTime, end)) {
       dateTime.next(this.values, this.emit.bind(this), 'minute');
     }
   }
