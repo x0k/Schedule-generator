@@ -1,5 +1,5 @@
 import { Generator, Grouper } from '../build/index';
-import data from '../data/exams';
+import data from './data/exams';
 import time from './time';
 
 const beginDate = new Date(2019, 0, 10),
