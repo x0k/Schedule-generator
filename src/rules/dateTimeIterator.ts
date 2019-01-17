@@ -1,6 +1,6 @@
-import { DateTime, IConstraints } from './dateTime';
-import { RuleResolver } from '../rules/ruleResolver';
-import { before } from './dateTimeHelper';
+import { DateTime, IConstraints } from '../dateTime/dateTime';
+import { RuleResolver } from './ruleResolver';
+import { before } from '../dateTime/dateTimeHelper';
 
 export class DateTimeIterator extends RuleResolver {
 
