@@ -1,10 +1,10 @@
 import { DatePart } from './datePart';
-import { RuleHandler } from '../rules/rule';
 import { getMonthLength } from './dateHelper';
+import { Interpreter } from '../rules/Interpretator';
 
 export interface IConstraint {
   step?: number;
-  handler?: RuleHandler;
+  expression?: any[];
 }
 
 export interface IConstraints {
@@ -16,6 +16,9 @@ type RuleRise = (id: string, ...args: any[]) => void;
 export class DateTime {
 
   private parts: { [name: string]: DatePart } = {};
+  private input = { dateTime: this };
+  private out: any[] = [];
+  private interpreter: Interpreter = new Interpreter(this.input, this.out);
 
   constructor (from: Date, constraints?: IConstraints) {
     const dateParts = [
@@ -42,34 +45,34 @@ export class DateTime {
     ];
     for (const { name, get, limit, limitNames } of dateParts) {
       let step: number = 1;
-      let handler: (value: any) => any = (val) => val;
+      let handler: () => any = () => false;
       if (constraints && constraints[name]) {
         const con = constraints[name];
         if (con.step) {
           step = con.step;
         }
-        if (con.handler) {
-          handler = con.handler;
+        if (con.expression) {
+          handler = this.interpreter.toHandler(con.expression);
         }
       }
       this.parts[name] = new DatePart(get(from), limitNames, step, handler, limit);
     }
   }
 
-  public next (values: { [id: string]: any }, level: RuleRise, name: string, value?: number): any {
+  public next (level: RuleRise, name: string, value?: number): any {
     const part = this.parts[name];
     const count = part.next(value);
     let flag = true;
     if (count) {
       for (const limit of part.limitNames) {
-        const val = this.next(values, level, limit, count);
+        const val = this.next(level, limit, count);
         flag = flag && (val || val === 0);
       }
     }
     if (flag) {
       level(name, this);
     }
-    return flag && part.done(values);
+    return flag && part.done;
   }
 
   public toDate () {

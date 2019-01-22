@@ -1,6 +1,6 @@
 import { deepEqual } from 'fast-equals';
-
 import { IRuleData, Rule } from './rule';
+import { Interpreter } from './Interpretator';
 
 type RuleTree = Map<string, IRuleTree>;
 interface IRuleTree extends Map<string, RuleTree> { }
@@ -18,9 +18,17 @@ export class RuleResolver {
     return result;
   }
 
+  public out: any[] = [];
   protected rules: { [id: string]: Rule } = {};
   protected values: { [id: string]: any } = {};
   private tree: IRuleTree = new Map();
+  private interpreter: Interpreter = new Interpreter(this.values, this.out);
+
+  constructor (rules: Rule[]) {
+    for (const rule of rules) {
+      this.rules[rule.id] = rule;
+    }
+  }
 
   public hasRule (id: string) {
     return id in this.rules;
@@ -30,7 +38,8 @@ export class RuleResolver {
     return this.rules[id];
   }
 
-  public addRule (rule: Rule) {
+  public addRule (data: IRuleData) {
+    const rule = this.interpreter.createRule(data);
     if (this.hasRule(rule.id)) {
       throw new Error(`Rule ${rule.id} are exist`);
     }
@@ -50,11 +59,6 @@ export class RuleResolver {
     parent.set(rule.id, new Map());
     this.rules[rule.id] = rule;
     return rule;
-  }
-
-  public createRule (ruleData: IRuleData) {
-    const rule = new Rule(ruleData);
-    return this.addRule(rule);
   }
 
   public getRuleListners (id: string) {

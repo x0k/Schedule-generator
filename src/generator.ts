@@ -1,51 +1,44 @@
-import { deepEqual } from 'fast-equals';
-import { DateTimeIterator } from './rules/dateTimeIterator';
-import { Event } from './event';
-import { IConstraints, DateTime } from './dateTime/dateTime';
+import { DateTime, IConstraints } from './dateTime/dateTime';
+import { RuleResolver } from './rules/ruleResolver';
+import { before } from './dateTime/dateTimeHelper';
 import { ISchedule } from './schedule';
-import { toHandler } from './rules/handlerBuilder';
+import { IRuleData, Rule } from './rules/rule';
 
 export class Generator {
 
-  private iterator: DateTimeIterator = new DateTimeIterator();
-  private events: Event[] = [];
   private constraints: IConstraints = {};
+  private rules: IRuleData[] = [];
+  private initialRules: Rule[] = [
+    { id: 'dateTime', handler: (data: any, dt: DateTime) => dt, require: new Set() },
+    { id: 'year', handler: (data: any, dt: DateTime) => dt.get('year'), require: new Set() },
+    { id: 'month', handler: (data: any, dt: DateTime) => dt.get('month'), require: new Set() },
+    { id: 'date', handler: (data: any, dt: DateTime) => dt.get('date'), require: new Set() },
+    { id: 'week', handler: (data: any, dt: DateTime) => dt.get('week'), require: new Set() },
+    { id: 'day', handler: (data: any, dt: DateTime) => dt.get('day'), require: new Set() },
+    { id: 'hour', handler: (data: any, dt: DateTime) => dt.get('hour'), require: new Set() },
+    { id: 'minute', handler: (data: any, dt: DateTime) => dt.get('minute'), require: new Set() },
+  ];
 
   public async load (schedule: ISchedule) {
-    // Load constraints
     this.constraints = schedule.constraints;
-    for (const key of Object.keys(this.constraints)) {
-      const expression = schedule.constraints[key].expression;
-      if (expression) {
-        this.constraints[key].handler = toHandler(expression);
-      }
-    }
-    // Load events
-    for (const rule of schedule.rules) {
-      rule.handler = toHandler(rule.expression);
-      this.iterator.createRule(rule);
-    }
-    // Load extractor
-    return this.iterator.createRule({
-      id: schedule.name,
-      require: [ 'year', 'month', 'date', 'week', 'day', 'hour', 'minute', schedule.extractor ],
-      handler: (values) => this.register(values.dateTime, values[schedule.extractor]),
-    });
+    this.rules = schedule.rules;
   }
 
-  public async run (start: Date, end: Date) {
-    await this.iterator.start(start, end, this.constraints);
-    return this.events;
-  }
-
-  private register (dateTime: DateTime, value: any) {
-    for (const event of this.events) {
-      if (deepEqual(event.value, value)) {
-        event.addPoint(dateTime);
-        return event;
-      }
+  public async run (begin: Date, end: Date) {
+    const resolver = new RuleResolver(this.initialRules);
+    const dateTime = new DateTime(begin, this.constraints);
+    for (const rule of this.rules) {
+      resolver.addRule(rule);
     }
-    this.events.push(new Event(value, dateTime));
+    // Init
+    for (const rule of this.initialRules) {
+      resolver.emit(rule.id, dateTime);
+    }
+    // Start
+    while (before(dateTime, end)) {
+      dateTime.next((id, ...args) => resolver.emit(id, ...args), 'minute');
+    }
+    return resolver.out;
   }
 
 }

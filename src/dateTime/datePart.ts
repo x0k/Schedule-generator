@@ -4,7 +4,7 @@ export class DatePart {
     public value: number,
     public limitNames: string[] = [],
     private step: number,
-    private handler: (value: any) => any,
+    private handler: () => any,
     private limit = (() => Number.MAX_VALUE),
   ) { }
 
@@ -19,8 +19,8 @@ export class DatePart {
     return count;
   }
 
-  public done (values: { [id: string]: any }) {
-    return this.handler(values);
+  get done (): boolean {
+    return this.handler();
   }
 
 }
