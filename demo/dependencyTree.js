@@ -1,7 +1,7 @@
 import { Generator } from '../build/index';
-import schedule from '../data/exams';
+import schedule from './data/exams';
 
-let gen = new Generator('minutes'),
+let gen = new Generator(),
   margin = 0,
   print = (name) => {
     let m = '';
@@ -19,5 +19,5 @@ let gen = new Generator('minutes'),
     }
     margin -= 1;
   }
-gen.load(schedule)
-  .then(event => draw(gen.iterator.tree));
+gen.show(schedule)
+  .then(resolver => draw(resolver.tree));

@@ -1,6 +1,6 @@
-import { DatePart } from './datePart';
-import { getMonthLength } from './dateHelper';
-import { Interpreter } from '../rules/Interpretator';
+import { DatePart } from './helpers/datePart';
+import { getMonthLength } from './helpers/dateHelper';
+import { Interpreter } from './interpreter';
 
 export interface IConstraint {
   step?: number;
@@ -19,8 +19,9 @@ export class DateTime {
   private input = { dateTime: this };
   private out: any[] = [];
   private interpreter: Interpreter = new Interpreter(this.input, this.out);
+  private handler: () => any;
 
-  constructor (from: Date, constraints?: IConstraints) {
+  constructor (from: Date, end: Date, constraints: IConstraints) {
     const dateParts = [
       { name: 'year', get: (date: Date) => date.getFullYear() },
       { name: 'month', get: (date: Date) => date.getMonth(), limit: () => 12, limitNames: ['year'] },
@@ -57,6 +58,7 @@ export class DateTime {
       }
       this.parts[name] = new DatePart(get(from), limitNames, step, handler, limit);
     }
+    this.handler = this.interpreter.toHandler(['before', end]);
   }
 
   public next (level: RuleRise, name: string, value?: number): any {
@@ -89,6 +91,10 @@ export class DateTime {
 
   public get (name: string) {
     return this.parts[name].value;
+  }
+
+  get done (): boolean {
+    return this.handler();
   }
 
 }

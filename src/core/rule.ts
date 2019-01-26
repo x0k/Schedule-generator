@@ -1,5 +1,9 @@
 export type RuleHandler = (...args: any[]) => any;
 
+export interface IHandlerBuilder {
+  toHandler: (expression: any[]) => RuleHandler;
+}
+
 export interface IRuleData {
   id: string;
   expression: any[];
@@ -12,9 +16,9 @@ export class Rule {
   public handler: RuleHandler;
   public require: Set<string>;
 
-  constructor (data: IRuleData, toHandler: (expression: any[]) => RuleHandler) {
+  constructor (data: IRuleData, builder: IHandlerBuilder ) {
     this.id = data.id;
-    this.handler = toHandler(data.expression);
+    this.handler = builder.toHandler(data.expression);
     this.require = data.require ? new Set(data.require) : new Set();
   }
 

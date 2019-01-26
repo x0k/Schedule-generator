@@ -1,5 +1,5 @@
-import { RuleHandler, IRuleData, Rule } from './rule';
-import { isToday, after, before } from '../dateTime/dateTimeHelper';
+import { RuleHandler, IHandlerBuilder } from './rule';
+import { isToday, after, before } from './dateTimeHelper';
 
 export interface IValues {
   [name: string]: any;
@@ -13,7 +13,7 @@ interface IOperations {
   [name: string]: Operation;
 }
 
-export class Interpreter {
+export class Interpreter implements IHandlerBuilder {
 
   private input: IValues;
   private out: any[];
@@ -85,17 +85,15 @@ export class Interpreter {
       return false;
     },
     'save' : (...items: Getter[]) => () => {
-      this.out.push(...items.map((el) => el(this.input)));
+      const data = items.map((el) => el(this.input));
+      console.log(data);
+      this.out.push([this.input.dateTime, ...data]);
     },
   };
 
   constructor (input: IValues, out: any[]) {
     this.input = input;
     this.out = out;
-  }
-
-  public createRule (data: IRuleData): Rule {
-    return new Rule(data, (exp) => this.toHandler(exp));
   }
 
   public toHandler (handlerFlow: any[]): RuleHandler {

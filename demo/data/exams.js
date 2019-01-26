@@ -1,5 +1,7 @@
 export default {
   name: '147a exams',
+  from: 1547067600000,
+  to: 1547931600000,
   constraints: {
     minute: {
       step: 30
@@ -8,7 +10,6 @@ export default {
       expression: [ 'in', 'fullDate', 2019, 0, 10, 'fullDate', 2019, 0, 20 ]
     },
   },
-  extractor: 'extractor',
   rules: [
     // Teachers
     {
@@ -96,7 +97,7 @@ export default {
     {
       id: 'extractor',
       require: [ 'type', 'teacher', 'subjects' ],
-      expression: [ 'and', 'every', [ 'get', 'type', 'get', 'teacher', 'get', 'subject' ], '+', '+', '+', '+', 'get', 'type', ', ', 'get', 'subject', ', ', 'get', 'teacher' ],
+      expression: [ 'every', [ 'get', 'type', 'get', 'teacher', 'get', 'subject', 'save', '+', '+', '+', '+', 'get', 'type', ', ', 'get', 'subject', ', ', 'get', 'teacher'] ],
     },
   ]
 };

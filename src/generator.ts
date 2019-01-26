@@ -1,8 +1,25 @@
-import { DateTime, IConstraints } from './dateTime/dateTime';
-import { RuleResolver } from './rules/ruleResolver';
-import { before } from './dateTime/dateTimeHelper';
-import { ISchedule } from './schedule';
-import { IRuleData, Rule } from './rules/rule';
+import { DateTime, IConstraints } from './core/dateTime';
+import { RuleResolver } from './ruleResolver';
+import { ISchedule } from './core/schedule';
+import { IRuleData, Rule } from './core/rule';
+
+const initResolver = async (
+  initialRules: Rule[],
+  begin: Date,
+  end: Date,
+  constraints: IConstraints,
+  rules: IRuleData[],
+) => {
+  const dateTime = new DateTime(begin, end, constraints);
+  const resolver = new RuleResolver(dateTime, initialRules);
+  for (const rule of rules) {
+    resolver.addRule(rule);
+  }
+  for (const rule of initialRules) {
+    resolver.emit(rule.id, dateTime);
+  }
+  return resolver;
+};
 
 export class Generator {
 
@@ -19,26 +36,26 @@ export class Generator {
     { id: 'minute', handler: (data: any, dt: DateTime) => dt.get('minute'), require: new Set() },
   ];
 
-  public async load (schedule: ISchedule) {
-    this.constraints = schedule.constraints;
-    this.rules = schedule.rules;
+  public async load (...schedules: ISchedule[]) {
+    for (const schedule of schedules) {
+      this.constraints = schedule.constraints;
+      this.rules = schedule.rules;
+    }
+    return this;
   }
 
   public async run (begin: Date, end: Date) {
-    const resolver = new RuleResolver(this.initialRules);
-    const dateTime = new DateTime(begin, this.constraints);
-    for (const rule of this.rules) {
-      resolver.addRule(rule);
+    return await initResolver(this.initialRules, begin, end, this.constraints, this.rules);
+  }
+
+  public async show ({ from, to, constraints, rules }: ISchedule, begin?: Date, end?: Date) {
+    if (!begin) {
+      begin = new Date(from);
     }
-    // Init
-    for (const rule of this.initialRules) {
-      resolver.emit(rule.id, dateTime);
+    if (!end) {
+      end = new Date(to);
     }
-    // Start
-    while (before(dateTime, end)) {
-      dateTime.next((id, ...args) => resolver.emit(id, ...args), 'minute');
-    }
-    return resolver.out;
+    return await initResolver(this.initialRules, begin, end, constraints, rules);
   }
 
 }
