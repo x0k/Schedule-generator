@@ -58,15 +58,33 @@ export class Interpreter implements IHandlerBuilder {
       const val = value(this.input);
       return val || val === 0;
     },
-    '+': (a: Getter, b: Getter) => () => a(this.input) + b(this.input),
-    '-': (a: Getter, b: Getter) => () => a(this.input) - b(this.input),
-    '/': (a: Getter, b: Getter) => () => a(this.input) / b(this.input),
-    '*': (a: Getter, b: Getter) => () => a(this.input) * b(this.input),
-    '=': (a: Getter, b: Getter) => () => a(this.input) === b(this.input),
-    '%': (a: Getter, b: Getter) => () => a(this.input) % b(this.input),
-    'and': (a: Getter, b: Getter) => () => a(this.input) && b(this.input),
-    'or': (a: Getter, b: Getter) => () => a(this.input) || b(this.input),
+    '+': (a: Getter, ...b: Getter[]) => () => b.reduce((acc, val) => acc + val(this.input), a(this.input)),
+    '-': (a: Getter, ...b: Getter[]) => () => b.reduce((acc, val) => acc - val(this.input), a(this.input)),
+    '/': (a: Getter, ...b: Getter[]) => () => b.reduce((acc, val) => acc / val(this.input), a(this.input)),
+    '*': (a: Getter, ...b: Getter[]) => () => b.reduce((acc, val) => acc * val(this.input), a(this.input)),
+    '=': (a: Getter, ...b: Getter[]) => () => b.reduce(
+      (acc, val) => acc === val(this.input) ? acc : false,
+      a(this.input),
+    ),
+    '%': (a: Getter, ...b: Getter[]) => () => b.reduce((acc, val) => acc % val(this.input), a(this.input)),
     'not': (operand: Getter) => () => !operand(this.input),
+    'and': (...list: Getter[]) => () => {
+      const len = list.length;
+      let i = 0;
+      while (i < len && this.operations.toBool(list[i])(this.input)) {
+        i++;
+      }
+      return i === len ? list[len - 1](this.input) : false;
+    },
+    'or': (...list: Getter[]) => () => {
+      for (const item of list) {
+        const val = this.operations.toBool(item)(this.input);
+        if (val) {
+          return val;
+        }
+      }
+      return false;
+    },
     'every': (...list: Getter[]) => () => {
       const len = list.length;
       let i = 0;
@@ -79,16 +97,12 @@ export class Interpreter implements IHandlerBuilder {
       for (const item of list) {
         const val = this.operations.toBool(item)(this.input);
         if (val) {
-          return val;
+          return list;
         }
       }
       return false;
     },
-    'save' : (...items: Getter[]) => () => {
-      const data = items.map((el) => el(this.input));
-      console.log(data);
-      this.out.push([this.input.dateTime, ...data]);
-    },
+    'save' : (item: Getter) => () => this.out.push([this.input.dateTime.toTime(), item(this.input)]),
   };
 
   constructor (input: IValues, out: any[]) {

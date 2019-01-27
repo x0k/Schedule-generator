@@ -1,17 +1,15 @@
-import { DateTime } from './dateTime';
-
 export class Event {
 
   public value: any;
   public points: number[];
 
-  constructor (dateTime: DateTime, value: any) {
+  constructor (time: number, value: any) {
     this.value = value;
-    this.points = [ dateTime.toTime() ];
+    this.points = [ time ];
   }
 
-  public addPoint (dateTime: DateTime) {
-    this.points.push(dateTime.toTime());
+  public addPoint (time: number) {
+    this.points.push(time);
   }
 
 }

@@ -11,7 +11,7 @@ export interface IConstraints {
   [name: string]: IConstraint;
 }
 
-type RuleRise = (id: string, ...args: any[]) => void;
+type RuleRise = (id: string) => void;
 
 export class DateTime {
 
@@ -46,7 +46,7 @@ export class DateTime {
     ];
     for (const { name, get, limit, limitNames } of dateParts) {
       let step: number = 1;
-      let handler: () => any = () => false;
+      let handler: () => any = () => true;
       if (constraints && constraints[name]) {
         const con = constraints[name];
         if (con.step) {
@@ -72,9 +72,9 @@ export class DateTime {
       }
     }
     if (flag) {
-      level(name, this);
+      level(name);
     }
-    return flag && part.done;
+    return flag && part.avaible;
   }
 
   public toDate () {
@@ -93,7 +93,7 @@ export class DateTime {
     return this.parts[name].value;
   }
 
-  get done (): boolean {
+  get avaible (): boolean {
     return this.handler();
   }
 

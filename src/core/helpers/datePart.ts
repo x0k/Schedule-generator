@@ -19,7 +19,7 @@ export class DatePart {
     return count;
   }
 
-  get done (): boolean {
+  get avaible (): boolean {
     return this.handler();
   }
 

@@ -206,8 +206,7 @@ export function periodToString (partion: Partion, period: IPeriod, type: Partion
 export async function createEvents (stream: any[]) {
   const result = [];
   let last: Event | null = null;
-  for (const [date, ...data] of stream) {
-    const value = data.length === 1 ? data[0] : data;
+  for (const [date, value] of stream) {
     if (last && deepEqual(last.value, value)) {
       last.addPoint(date);
     } else {

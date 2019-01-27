@@ -2,7 +2,6 @@ import { deepEqual } from 'fast-equals';
 import { DateTime, IConstraints } from './core/dateTime';
 import { IRuleData, Rule } from './core/rule';
 import { Interpreter } from './core/interpreter';
-import { createEvents } from './grouper';
 
 type RuleTree = Map<string, IRuleTree>;
 interface IRuleTree extends Map<string, RuleTree> { }
@@ -18,16 +17,7 @@ const getPaths = (identifiers: Set<string>, tree: IRuleTree) => {
   return result;
 };
 
-const initialRules: Rule[] = [
-  { id: 'dateTime', handler: (data: any, dt: DateTime) => dt, require: new Set() },
-  { id: 'year', handler: (data: any, dt: DateTime) => dt.get('year'), require: new Set() },
-  { id: 'month', handler: (data: any, dt: DateTime) => dt.get('month'), require: new Set() },
-  { id: 'date', handler: (data: any, dt: DateTime) => dt.get('date'), require: new Set() },
-  { id: 'week', handler: (data: any, dt: DateTime) => dt.get('week'), require: new Set() },
-  { id: 'day', handler: (data: any, dt: DateTime) => dt.get('day'), require: new Set() },
-  { id: 'hour', handler: (data: any, dt: DateTime) => dt.get('hour'), require: new Set() },
-  { id: 'minute', handler: (data: any, dt: DateTime) => dt.get('minute'), require: new Set() },
-];
+
 
 export class Generator {
 
@@ -37,9 +27,19 @@ export class Generator {
   private constraints: IConstraints;
   private tree: IRuleTree = new Map();
   private interpreter = new Interpreter(this.values, this.out);
+  private initialRules: Rule[] = [
+    { id: 'dateTime', handler: () => this.values.dateTime, require: new Set() },
+    { id: 'year', handler: () => this.values.dateTime.get('year'), require: new Set() },
+    { id: 'month', handler: () => this.values.dateTime.get('month'), require: new Set() },
+    { id: 'date', handler: () => this.values.dateTime.get('date'), require: new Set() },
+    { id: 'week', handler: () => this.values.dateTime.get('week'), require: new Set() },
+    { id: 'day', handler: () => this.values.dateTime.get('day'), require: new Set() },
+    { id: 'hour', handler: () => this.values.dateTime.get('hour'), require: new Set() },
+    { id: 'minute', handler: () => this.values.dateTime.get('minute'), require: new Set() },
+  ];
 
   constructor (rules: IRuleData[], constraints: IConstraints) {
-    for (const rule of initialRules) {
+    for (const rule of this.initialRules) {
       this.rules[rule.id] = rule;
       this.tree.set(rule.id, new Map());
     }
@@ -102,15 +102,15 @@ export class Generator {
     return find(this.tree);
   }
 
-  public emit = (ruleId: string, ...args: any[]) => {
+  public emit = (ruleId: string) => {
     const raise = (id: string, listners: IRuleTree | false) => {
       const rule = this.getRule(id);
-      const value = rule.handler(this.values, ...args);
+      const value = rule.handler();
       if (!deepEqual(this.values[id], value)) {
         this.values[id] = value;
         if (listners && listners.size) {
-          for (const [listnerId, listnerValue] of listners) {
-            raise(listnerId, listnerValue);
+          for (const [listnerId, listnerListners] of listners) {
+            raise(listnerId, listnerListners);
           }
         }
       }
@@ -120,13 +120,14 @@ export class Generator {
 
   public async run (begin: Date, end: Date) {
     const dateTime = new DateTime(begin, end, this.constraints);
-    for (const rule of initialRules) {
-      this.emit(rule.id, dateTime);
+    this.values.dateTime = dateTime;
+    for (const rule of this.initialRules) {
+      this.emit(rule.id);
     }
-    while (dateTime.done) {
+    while (dateTime.avaible) {
       dateTime.next(this.emit, 'minute');
     }
-    return await createEvents(this.out);
+    return this.out;
   }
 
 }
