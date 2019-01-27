@@ -17,8 +17,6 @@ const getPaths = (identifiers: Set<string>, tree: IRuleTree) => {
   return result;
 };
 
-
-
 export class Generator {
 
   public out: any[] = [];
