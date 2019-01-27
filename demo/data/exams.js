@@ -15,7 +15,7 @@ export default {
     {
       id: 'Babenko',
       require: ['minute'],
-      expression: [ 'and', 'or', [
+      expression: [ 'and', ['or', [
         'and', [
           'in', 'time', 9, 0, 'time', 10, 30,
           'or', [
@@ -28,12 +28,12 @@ export default {
             'today', 'date', 0, 10,
             'today', 'date', 0, 14,
           ] ],
-      ], 'Бабенко В. В.' ],
+      ], 'Бабенко В. В.'] ],
     },
     {
       id: 'Mironov',
       require: ['minute'],
-      expression: [ 'and', 'or', [
+      expression: [ 'and', ['or', [
         'and', [
           'today', 'date', 0, 19,
           'in', 'time', 9, 0, 'time', 10, 30,
@@ -42,62 +42,62 @@ export default {
           'today', 'date', 0, 18,
           'in', 'time', 15, 0, 'time', 16, 0,
         ] ],
-      'Миронов В. В.' ]
+      'Миронов В. В.'] ]
     },
     {
       id: 'teacher',
       require: [ 'Babenko', 'Mironov' ],
-      expression: [ 'any', [ 'get', 'Babenko', 'get', 'Mironov' ] ]
+      expression: [ 'or', [ 'get', 'Babenko', 'get', 'Mironov' ] ]
     },
     // Types
     {
       id: 'exam',
       require: ['date'],
-      expression: [ 'and', 'any', [
+      expression: [ 'and', ['or', [
         'today', 'date', 0, 11,
         'today', 'date', 0, 15,
         'today', 'date', 0, 19,
-      ], 'Экзамен' ],
+      ], 'Экзамен'] ],
     },
     {
       id: 'consultation',
       require: ['date'],
-      expression: [ 'and', 'any', [
+      expression: [ 'and', ['or', [
         'today', 'date', 0, 10,
         'today', 'date', 0, 14,
         'today', 'date', 0, 18,
-      ], 'Консультация' ],
+      ], 'Консультация'] ],
     },
     {
       id: 'type',
       require: ['exam', 'consultation'],
-      expression: [ 'any', [ 'get', 'exam', 'get', 'consultation' ] ]
+      expression: [ 'or', [ 'get', 'exam', 'get', 'consultation' ] ]
     },
     // Subjects
     {
       id: 'Reengineering',
       require: ['date'],
-      expression: [ 'and', 'in', 'date', 0, 10, 'date', 0, 12, 'Реинжиниринг и оптимизация бизнес процессов' ],
+      expression: [ 'and', ['in', 'date', 0, 10, 'date', 0, 12, 'Реинжиниринг и оптимизация бизнес процессов'] ],
     },
     {
       id: 'KnowledgeEngineering',
       require: ['date'],
-      expression: [ 'and', 'in', 'date', 0, 18, 'date', 0, 20, 'Основы инженерии знаний' ],
+      expression: [ 'and', ['in', 'date', 0, 18, 'date', 0, 20, 'Основы инженерии знаний'] ],
     },
     {
       id: 'SystemDesign',
       require: ['date'],
-      expression: [ 'and', 'in', 'date', 0, 14, 'date', 0, 16, 'Проектирование информационных систем' ],
+      expression: [ 'and', ['in', 'date', 0, 14, 'date', 0, 16, 'Проектирование информационных систем'] ],
     },
     {
       id: 'subject',
       require: [ 'Reengineering', 'KnowledgeEngineering', 'SystemDesign' ],
-      expression: [ 'any', [ 'get', 'Reengineering', 'get', 'KnowledgeEngineering', 'get', 'SystemDesign' ] ]
+      expression: [ 'or', [ 'get', 'Reengineering', 'get', 'KnowledgeEngineering', 'get', 'SystemDesign' ] ]
     },
     {
       id: 'extractor',
       require: [ 'type', 'teacher', 'subjects' ],
-      expression: [ 'every', [ 'get', 'type', 'get', 'teacher', 'get', 'subject', 'save', '+', '+', '+', '+', 'get', 'type', ', ', 'get', 'subject', ', ', 'get', 'teacher'] ],
+      expression: [ 'save', 'and', ['get', 'type', 'get', 'teacher', 'get', 'subject', '+', ['get', 'type', ', ', 'get', 'subject', ', ', 'get', 'teacher'] ] ],
     },
   ]
 };

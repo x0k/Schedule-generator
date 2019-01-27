@@ -1,7 +1,7 @@
-import { Generator } from '../build/index';
+import { Loader } from '../build/index';
 import schedule from './data/exams';
 
-let gen = new Generator(),
+let gen = new Loader(),
   margin = 0,
   print = (name) => {
     let m = '';
@@ -19,5 +19,5 @@ let gen = new Generator(),
     }
     margin -= 1;
   }
-gen.show(schedule)
-  .then(resolver => draw(resolver.tree));
+gen.load(schedule)
+  .then(gen => draw(gen.tree));
