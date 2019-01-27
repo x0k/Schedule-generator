@@ -1,4 +1,4 @@
-import { Generator } from './generator';
+import { Loader } from './loader';
 import * as Grouper from './grouper';
 
-export { Generator, Grouper };
+export { Loader, Grouper };

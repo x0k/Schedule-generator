@@ -203,6 +203,57 @@ export function periodToString (partion: Partion, period: IPeriod, type: Partion
   return `${fromString} - ${toString.slice(toStringBegin)}`;
 }
 
+export async function createEvents (stream: any[]) {
+  const result = [];
+  let last: Event | null = null;
+  for (const [date, ...data] of stream) {
+    const value = data.length === 1 ? data[0] : data;
+    if (last && deepEqual(last.value, value)) {
+      last.addPoint(date);
+    } else {
+      last = new Event(date, value);
+      result.push(last);
+    }
+  }
+  return result;
+}
+
+function calcStepFromConstraints (constraints: IConstraints) {
+  const partions: Partion[] = ['minute', 'hour', 'day', 'week'];
+  for (const partion of partions) {
+    const step = constraints[partion].step;
+    if (step) {
+      return getPartionSize(partion) * step;
+    }
+  }
+  return false;
+}
+
+function calcStepFromEvents (events: Event[]) {
+  const sortFn = (a: number, b: number) => b - a;
+  const getMinDiff = (points: number[]) => {
+    if (points.length < 2) {
+      throw new Error(`No points to calc diff`);
+    }
+    points.sort(sortFn);
+    let minDiff = points[0] - points[1];
+    if (points.length === 2) {
+      return minDiff;
+    }
+    for (let i = 2; i < points.length; i++) {
+      minDiff = Math.min(minDiff, points[i - 1] - points[i]);
+    }
+    return minDiff;
+  };
+  let diff = Number.MAX_VALUE;
+  for (const event of events) {
+    if (event.points.length > 1) {
+      diff = Math.min(diff, getMinDiff(event.points));
+    }
+  }
+  return diff;
+}
+
 export async function toList ({ events, filter = true, constraints, from, to }: IToListArgs): Promise<ILineEvent[]> {
   if (events.length === 0) {
     return [];
@@ -244,40 +295,4 @@ export async function toList ({ events, filter = true, constraints, from, to }: 
     result = result.filter((el) => Boolean(el.value));
   }
   return result;
-}
-
-export function calcStepFromConstraints (constraints: IConstraints) {
-  const partions: Partion[] = ['minute', 'hour', 'day', 'week'];
-  for (const partion of partions) {
-    const step = constraints[partion].step;
-    if (step) {
-      return getPartionSize(partion) * step;
-    }
-  }
-  return false;
-}
-
-export function calcStepFromEvents (events: Event[]) {
-  const sortFn = (a: number, b: number) => b - a;
-  const getMinDiff = (points: number[]) => {
-    if (points.length < 2) {
-      throw new Error(`No points to calc diff`);
-    }
-    points.sort(sortFn);
-    let minDiff = points[0] - points[1];
-    if (points.length === 2) {
-      return minDiff;
-    }
-    for (let i = 2; i < points.length; i++) {
-      minDiff = Math.min(minDiff, points[i - 1] - points[i]);
-    }
-    return minDiff;
-  };
-  let diff = Number.MAX_VALUE;
-  for (const event of events) {
-    if (event.points.length > 1) {
-      diff = Math.min(diff, getMinDiff(event.points));
-    }
-  }
-  return diff;
 }
