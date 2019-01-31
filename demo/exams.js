@@ -4,7 +4,8 @@ import time from './time';
 
 const beginDate = new Date(2019, 0, 10),
   endDate = new Date(2019, 0, 20),
-  loader = new Loader();
+  loader = new Loader(),
+  groupBy = 'day';
 
 time();
 loader.load(data)
@@ -16,5 +17,14 @@ loader.load(data)
     from: beginDate,
     to: endDate,
   }))
-  .then(data => Grouper.groupBy('day', data))
-  .then(grouped => console.log(grouped));
+  .then(data => Grouper.groupBy(groupBy, data))
+  .then(groups => {
+    time('Done');
+    for (let group of groups) {
+      console.log(Grouper.headerPartionToString(groupBy, new Date(group.start)))
+      for (let item of group.items) {
+        console.log('  ', Grouper.periodToString(groupBy, item));
+        console.log('  ', item.value);
+      }
+    }
+  });
