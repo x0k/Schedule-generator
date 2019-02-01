@@ -1,14 +1,13 @@
 {
   "dependencies": {
-    "fast-equals": "^1.6.1"
+    "fast-equals": "^1.6.1",
+    "rule-interpreter": "^0.0.1"
   },
   "name": "schedule-core",
   "version": "0.2.0",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
     "tslint": "^5.12.1",
     "typescript": "^3.2.2"
   },
