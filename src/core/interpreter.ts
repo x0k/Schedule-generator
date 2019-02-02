@@ -73,7 +73,7 @@ export class CustomInterpreter extends Interpreter {
   constructor (input: IValues, output: any) {
     super(input, output);
     for (const key of Object.keys(operations)) {
-      super.addOperations(key, operations[key]);
+      this.addOperation(key, operations[key]);
     }
   }
 
