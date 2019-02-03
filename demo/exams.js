@@ -1,13 +1,12 @@
 import { Loader, Grouper } from '../build/index';
 import data from './data/exams';
-import time from './time';
 
 const beginDate = new Date(2019, 0, 10),
   endDate = new Date(2019, 0, 20),
   loader = new Loader(),
   groupBy = 'day';
 
-time();
+console.time('Done');
 loader.load(data)
   .then(gen => gen.run(beginDate, endDate))
   .then(data => Grouper.createEvents(data))
@@ -19,7 +18,7 @@ loader.load(data)
   }))
   .then(data => Grouper.groupBy(groupBy, data))
   .then(groups => {
-    time('Done');
+    console.timeEnd('Done');
     for (let group of groups) {
       console.log(Grouper.headerPartionToString(groupBy, new Date(group.start)))
       for (let item of group.items) {
