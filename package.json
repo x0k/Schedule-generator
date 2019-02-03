@@ -21,7 +21,10 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "ava"
+    "test": "ava",
+    "lint": "tslint -p tsconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint"
   },
   "repository": {
     "type": "git",
