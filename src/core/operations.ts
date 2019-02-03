@@ -171,12 +171,10 @@ const actions: IActions = {
 
 class DateOperation extends Operation<any> {
 
-  public eval (...values: any[]) {
-    return (input: IValues, output: any[]) => super.eval(input, output, ...values);
-  }
-
-  protected evaluator (action: TAction, input: IValues, output: any[], ...values: any[]) {
-    return super.evaluator(action(input, output), ...values.map((val) => val(input, output)));
+  protected evaluator (action: TAction, ...values: any[]) {
+    return (input: IValues, output: any[]) => {
+      return super.evaluator(action(input, output), ...values.map((val) => val(input, output)));
+    };
   }
 
 }
