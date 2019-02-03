@@ -1,7 +1,7 @@
 import { deepEqual } from 'fast-equals';
 import { DateTime, IConstraints } from './core/dateTime';
 import { IRuleData, Rule } from './core/rule';
-import { CustomInterpreter as Interpreter } from './core/interpreter';
+import { Interpreter } from './core/interpreter';
 
 type RuleTree = Map<string, IRuleTree>;
 interface IRuleTree extends Map<string, RuleTree> { }

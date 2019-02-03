@@ -1,6 +1,6 @@
 import { DatePart } from './helpers/datePart';
 import { getMonthLength } from './helpers/dateHelper';
-import { CustomInterpreter as Interpreter } from './interpreter';
+import { Interpreter, THandler } from './interpreter';
 
 export interface IConstraint {
   step?: number;
@@ -19,7 +19,7 @@ export class DateTime {
   private input = { dateTime: this };
   private out: any[] = [];
   private interpreter: Interpreter = new Interpreter(this.input, this.out);
-  private handler: () => any;
+  private handler: THandler;
 
   constructor (from: Date, end: Date, constraints: IConstraints) {
     const dateParts = [
