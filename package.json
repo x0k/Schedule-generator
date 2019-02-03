@@ -1,14 +1,18 @@
 {
   "dependencies": {
-    "fast-equals": "^1.6.1"
+    "fast-equals": "^1.6.1",
+    "rule-interpreter": "0.1.1"
   },
   "name": "schedule-core",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
+    "@babel/core": "^7.2.2",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "ava": "^1.2.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
     "tslint": "^5.12.1",
     "typescript": "^3.2.2"
   },
@@ -16,7 +20,11 @@
     "build/**/*"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "ava",
+    "lint": "tslint -p tsconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint"
   },
   "repository": {
     "type": "git",
@@ -28,5 +36,10 @@
     "url": "https://github.com/x0k/schedule-core.git/issues"
   },
   "homepage": "https://github.com/x0k/schedule-core.git#readme",
-  "description": "Core for Project schedule - web application for viewing the complex schedules defined by the rule base"
+  "description": "Core for Project schedule - web application for viewing the complex schedules defined by the rule base",
+  "ava": {
+    "files": [
+      "tests/*.js"
+    ]
+  }
 }
