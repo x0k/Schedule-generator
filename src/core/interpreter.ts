@@ -1,6 +1,7 @@
 import { buildAction } from 'rule-interpreter';
 
-import { IValues, operations } from './operations';
+import { IValues } from './actions';
+import { operations } from './operations';
 
 const getter = (array: any[], id: number) => {
   const el = array[id];
