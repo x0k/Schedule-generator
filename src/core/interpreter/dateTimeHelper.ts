@@ -1,4 +1,4 @@
-import { DateTime } from './dateTime';
+import { DateTime } from '../dateTime';
 
 export function before (dateTime: DateTime, date: Date) {
   if (dateTime.get('year') < date.getFullYear()) {

@@ -1,7 +1,7 @@
 import { deepEqual } from 'fast-equals';
 import { Event } from './core/event';
 import { IConstraints } from './core/dateTime';
-import * as Helper from './core/helpers/dateHelper';
+import * as Helper from './core/dateTime/dateHelper';
 
 export interface IPeriod {
   start: number;

@@ -1,6 +1,6 @@
-import { DatePart } from './helpers/datePart';
-import { getMonthLength } from './helpers/dateHelper';
-import { Interpreter, THandler } from './interpreter';
+import { DatePart } from './datePart';
+import { getMonthLength } from './dateHelper';
+import { Interpreter, THandler } from '../interpreter';
 
 export interface IConstraint {
   step?: number;

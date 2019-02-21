@@ -1,6 +1,6 @@
 import test from 'ava';
 
-import * as Helper from '../build/core/helpers/dateHelper';
+import * as Helper from '../build/core/dateTime/dateHelper';
 
 import { DateTime } from '../build/core/dateTime';
 
