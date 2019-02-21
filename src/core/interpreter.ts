@@ -1,10 +1,9 @@
-import { buildAction } from 'rule-interpreter';
+import { buildActions } from 'rule-interpreter';
 
 import { IValues } from './actions';
 import { operations } from './operations';
 
-const getter = (array: any[], id: number) => {
-  const el = array[id];
+const getter = (el: any) => {
   if (el in operations) {
     return operations[el];
   }
@@ -21,7 +20,7 @@ export class Interpreter {
   ) { }
 
   public toHandler (data: any[]): THandler {
-    const action = buildAction(data, getter);
+    const [ action ] = buildActions(data, getter);
     return () => action(this.input, this.output);
   }
 

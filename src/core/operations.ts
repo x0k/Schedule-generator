@@ -6,7 +6,8 @@ class DateOperation extends Operation<any> {
 
   protected evaluator (action: TAction, ...values: any[]) {
     return (input: IValues, output: any[]) => {
-      return super.evaluator(action(input, output), ...values.map((val) => val(input, output)));
+      return super.evaluator(action(input, output), ...values.map((val) =>
+        typeof val === 'function' ? val(input, output) : val));
     };
   }
 

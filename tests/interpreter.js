@@ -15,7 +15,7 @@ test('Date operations', t => {
   const year = now.getFullYear();
   const month = now.getMonth();
   const date = now.getDate();
-  const data = [ 'in', 'fullDate', year, month, date - 1, 'fullDate', year, month, date + 1 ];
+  const data = [ year, month, date - 1, 'fullDate', year, month, date + 1, 'fullDate', 'in' ];
   const handler = interpreter.toHandler(data);
   t.true(handler());
 });

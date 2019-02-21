@@ -58,7 +58,7 @@ export class DateTime {
       }
       this.parts[name] = new DatePart(get(from), limitNames, step, handler, limit);
     }
-    this.handler = this.interpreter.toHandler(['before', end]);
+    this.handler = this.interpreter.toHandler([end, 'before']);
   }
 
   public next (level: RuleRise, name: string, value?: number): any {
