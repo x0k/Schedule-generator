@@ -1,26 +1,13 @@
-export class DatePart {
+export type TOnChangeEvent = (value: number) => void;
 
-  constructor (
-    public value: number,
-    public limitNames: string[] = [],
-    private step: number,
-    private handler: () => any,
-    private limit = (() => Number.MAX_VALUE),
-  ) { }
-
-  public next (value?: number) {
-    this.value += value ? (value % this.step ? Math.ceil(value / this.step) * this.step : value) : this.step;
-    const limit = this.limit();
-    if (this.value < limit) {
-      return 0;
+export function* datePart (onChange: TOnChangeEvent, value: number, step: number, getLimit = () => Number.MAX_VALUE) {
+  do {
+    value += step;
+    const limit = getLimit();
+    if (value >= limit) {
+      yield Math.floor(value / limit);
+      value %= limit;
     }
-    const count = Math.floor(this.value / limit);
-    this.value %= limit;
-    return count;
-  }
-
-  get avaible (): boolean {
-    return this.handler();
-  }
-
+    onChange(value);
+  } while (true);
 }
