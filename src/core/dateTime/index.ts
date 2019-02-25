@@ -1,5 +1,5 @@
 import { getMonthLength } from './dateHelper';
-import { iterator, TValue, IIteratorArgs, ITree, IAction } from './iterator';
+import { iterator, TValue, ITree, IAction } from './iterator';
 import { Interpreter, THandler } from '../interpreter';
 
 export interface IConstraint {
@@ -23,25 +23,46 @@ const toTree = <T>(
   type: string,
   value: T,
   handler: (state: T) => T,
-  avaible: (state: T, parent?: IAction<T>) => boolean,
-  data?: ITree<T>,
+  avaible: (state: T, prev?: IAction<T>) => boolean,
+  next?: ITree<T>,
 ): ITree<T> => ({
   type,
   value,
-  *iterable (val, parent): IterableIterator<T> {
-    while (avaible(val, parent)) {
+  *iterable (val, prev): IterableIterator<T> {
+    while (avaible(val, prev)) {
       val = handler(val);
       yield val;
     }
   },
-  data,
+  next,
 });
 
 export default function* dateTime (begin: Date, end: Date, constraints: IConstraints): TValue<number> {
-  let { year, month, day, hours, minutes } = toDate(begin);
-  const { year: eYear, month: eMonth, day: eDay, hours: eHours, minutes: eMinutes } = toDate(end);
+  const date = toDate(begin);
+  const endDate = toDate(end);
 
-  const minuteTree = toTree('minutes', minutes, (val) => ++val, (val) => val < 60);
-  const hourTree = toTree('hour', hours, (val) => ++val, (val) => val < 24, minuteTree);
+  const inc = (val: number) => ++val;
+
+  const minuteTree = toTree('minutes', 0, inc, (val) => val < 60);
+  const hourTree = toTree('hour', 0, inc, (val) => val < 24, minuteTree);
+  const dayTree = toTree('date', 0, inc, (val, prev) => {
+    if (prev && prev.prev) {
+      const curentYear = prev.prev.value;
+      const curentMonth = prev.value;
+      return val < getMonthLength(curentYear, curentMonth);
+    }
+    return false;
+  }, hourTree);
+  const monthTree = toTree('month', 0, inc, (val) => val < 12, dayTree);
+  const yearTree = toTree('year', 2000, inc, () => true, monthTree);
+
+  const dateTree = toTree('dateTime', date, (state) => {
+
+  },
+  (state) => {});
+  for (const action of iterator(yearTree)) {
+    while ()
+      yield action;
+  }
 
 }
