@@ -4,7 +4,7 @@ export interface IAction<T> {
   prev?: IAction<T>;
 }
 
-export type TIterator<T> = (initialValue: T, parent?: IAction<T>) => IterableIterator<T>;
+export type TIterator<T> = (initialValue: T, prev?: IAction<T>) => IterableIterator<T>;
 
 export interface ITree<T> extends IAction<T> {
   iterable: TIterator<T>;
@@ -21,5 +21,5 @@ export function* iterator<T> ({ type, value: initialValue, iterable, next, prev 
     }
     yield now;
   }
-  return { type, value: false, parent };
+  return { type, value: false, prev };
 }
