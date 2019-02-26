@@ -1,5 +1,5 @@
 import { getMonthLength } from './dateHelper';
-import { iterator, TValue, ITree, IAction } from './iterator';
+import { iterator, TValue, IIterable, IAction } from './iterator';
 import { Interpreter, THandler } from '../interpreter';
 import { actions } from '../interpreter/actions';
 
@@ -20,22 +20,24 @@ const toDate = (date: Date) => ({
   minutes: date.getMinutes(),
 });
 
-type THandler<T> = (value: T, prev?: IAction<T>) => T;
-type TAvaible<T> = (value: T, prev?: IAction<T>) => boolean;
+type THandler<T> = (value: T) => T;
+type TAvaible<T> = (value: T) => boolean;
 
-const toTree = <T>(
+const toIterable = <T>(
   type: string,
   value: T,
+  defaultValue: T,
   handler: THandler<T>,
   avaible: TAvaible<T>,
-  next?: ITree<T>,
-): ITree<T> => ({
+  next?: IIterable<T>,
+): IIterable<T> => ({
   type,
   value,
-  *iterable (initialValue, prev): IterableIterator<T> {
-    while (avaible(initialValue, prev)) {
-      yield handler(initialValue, prev);
+  *iterable (initialValue): IterableIterator<T> {
+    while (avaible(initialValue)) {
+      yield handler(initialValue);
     }
+    yield defaultValue;
   },
   next,
 });
@@ -43,55 +45,70 @@ const toTree = <T>(
 interface IDate {
   name: string;
   initialValue: number;
+  handler: THandler<number>;
   avaible: TAvaible<number>;
   next?: IDate;
 }
+
+const buildBinder = <T>(state: { [name: string]: T }) => (name: string, action: THandler<T> | TAvaible<T>) =>
+  (initialValue: T) =>
+    action(name in state ? state[name] : initialValue);
+
+type TBinder<T> = (name: string, action: THandler<T> | TAvaible<T>) => (initialValue: T) => T;
+
+const buildTree = (date: IDate, bind: TBinder<any>): IIterable<any> => {
+  const next = date.next ? buildTree(date.next, bind) : undefined;
+  return toIterable(
+    date.name,
+    date.initialValue,
+    0,
+    bind(date.name, date.handler),
+    bind(date.name, date.avaible),
+    next,
+  );
+};
 
 export default function* dateTime (begin: Date, end: Date, constraints: IConstraints): TValue<number> {
   const { year, month, day, hours, minutes } = toDate(begin);
   const endDate = toDate(end);
 
   const state: { [name: string]: any } = { };
-
-  const getter = <T>(name: string, action: THandler<T> | TAvaible<T>) =>
-    (initialValue: T, prev?: IAction<T>) =>
-      action(name in state ? state[name] : initialValue, prev);
+  const binder = buildBinder(state);
 
   const inc = (val: number) => ++val;
-
   const lim = (limit: number) => (val: number) => val < limit;
 
   const date: IDate = {
-    name: 'hour',
-    initialValue: hours,
-    avaible: lim(24),
+    name: 'year',
+    initialValue: year,
+    handler: inc,
+    avaible: lim(Number.MAX_VALUE),
     next: {
-      name: 'minute',
-      initialValue: minutes,
-      avaible: lim(60),
+      name: 'month',
+      initialValue: month,
+      handler: inc,
+      avaible: lim(12),
+      next: {
+        name: 'date',
+        initialValue: day,
+        handler: inc,
+        avaible: (val) => val < getMonthLength(state.year, state.month),
+        next: {
+          name: 'hour',
+          initialValue: hours,
+          handler: inc,
+          avaible: lim(24),
+          next: {
+            name: 'minute',
+            initialValue: minutes,
+            handler: inc,
+            avaible: lim(60),
+          },
+        },
+      },
     },
   };
 
-  const minuteTree = toTree('minutes', 0, inc, (val) => val < 60);
-  const hourTree = toTree('hour', 0, inc, (val) => val < 24, minuteTree);
-  const dayTree = toTree('date', 0, inc, (val, prev) => {
-    if (prev && prev.prev) {
-      const curentYear = prev.prev.value;
-      const curentMonth = prev.value;
-      return val < getMonthLength(curentYear, curentMonth);
-    }
-    return false;
-  }, hourTree);
-  const monthTree = toTree('month', 0, inc, (val) => val < 12, dayTree);
-  const yearTree = toTree('year', 2000, inc, () => true, monthTree);
-
-  const dateTree = toTree('dateTime', date, (state) => {
-
-  },
-  (state) => {});
-  for (const action of iterator(yearTree)) {
-    while ()
-      yield action;
-  }
+  const tree = buildTree(date, binder);
 
 }

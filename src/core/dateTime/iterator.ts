@@ -1,25 +1,24 @@
 export interface IAction<T> {
   type: string;
   value: T;
-  prev?: IAction<T>;
 }
 
-export type TIterator<T> = (initialValue: T, prev?: IAction<T>) => IterableIterator<T>;
+export type TIterator<T> = (initialValue: T) => IterableIterator<T>;
 
-export interface ITree<T> extends IAction<T> {
+export interface IIterable<T> extends IAction<T> {
   iterable: TIterator<T>;
-  next?: ITree<T>;
+  next?: IIterable<T>;
 }
 
 export type TValue<T> = IterableIterator<IAction<T | false>>;
 
-export function* iterator<T> ({ type, value: initialValue, iterable, next, prev }: ITree<T>): TValue<T> {
-  for (const value of iterable(initialValue, prev)) {
-    const now = { type, value, prev };
+export function* iterator<T> ({ type, value: initialValue, iterable, next }: IIterable<T>): TValue<T> {
+  for (const value of iterable(initialValue)) {
+    const now = { type, value };
     if (next) {
-      yield * iterator({ ...next, prev: now });
+      yield * iterator(next);
     }
     yield now;
   }
-  return { type, value: false, prev };
+  return { type, value: false };
 }
