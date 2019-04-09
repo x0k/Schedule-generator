@@ -1,5 +1,11 @@
-import { IConstraints } from './dateTime';
-import { IRuleData } from './rule';
+export interface IConstraints {
+  step?: number
+}
+export interface IRuleData {
+  id: string;
+  expression: any[];
+  require?: string[];
+}
 
 export interface ISchedule {
   name: string;

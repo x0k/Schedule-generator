@@ -1,114 +1,41 @@
-import { getMonthLength } from './dateHelper';
-import { iterator, TValue, IIterable, IAction } from './iterator';
-import { Interpreter, THandler } from '../interpreter';
-import { actions } from '../interpreter/actions';
+import {
+  buildIterable,
+  handle,
+  wrap
+} from 'iterator-wrapper'
 
-export interface IConstraint {
-  step?: number;
-  expression?: any[];
-}
+import {
+  getMonthLength,
+  toDateTime,
+  IDateTime
+} from './dateHelper'
 
-export interface IConstraints {
-  [name: string]: IConstraint;
-}
+export * from './dateHelper'
 
-const toDate = (date: Date) => ({
-  year: date.getFullYear(),
-  month: date.getMonth(),
-  day: date.getDate(),
-  hours: date.getHours(),
-  minutes: date.getMinutes(),
-});
+const years = buildIterable<IDateTime>((): boolean => true)
+const months = buildIterable<IDateTime>(({ month }): boolean => month < 12)
+const days = buildIterable<IDateTime>(({ year, month, day }): boolean => day < getMonthLength(year, month))
+const hours = buildIterable<IDateTime>(({ hour }): boolean => hour < 24)
+const minutes = buildIterable<IDateTime>(({ minute }): boolean => minute < 60)
 
-type THandler<T> = (value: T) => T;
-type TAvaible<T> = (value: T) => boolean;
+const iterable = wrap(
+  wrap(
+    wrap(
+      wrap(years, months, ({ year, month, ...rest }) => ({ year: year + Math.floor(month / 12), month: month % 12, ...rest })),
+      days,
+      ({ year, month, day, ...rest }) => {
+        const len = getMonthLength(year, month)
+        return { year, month: month + Math.floor(day / len), day: day % len, ...rest }
+      }
+    ),
+    hours,
+    ({ day, hour, ...rest }) => ({ day: day + Math.floor(hour / 24), hour: hour % 24, ...rest })
+  ),
+  minutes,
+  ({ hour, minute, ...rest }) => ({ hour: hour + Math.floor(minute / 60), minute: minute % 60, ...rest })
+)
 
-const toIterable = <T>(
-  type: string,
-  value: T,
-  defaultValue: T,
-  handler: THandler<T>,
-  avaible: TAvaible<T>,
-  next?: IIterable<T>,
-): IIterable<T> => ({
-  type,
-  value,
-  *iterable (initialValue): IterableIterator<T> {
-    while (avaible(initialValue)) {
-      yield handler(initialValue);
-    }
-    yield defaultValue;
-  },
-  next,
-});
-
-interface IDate {
-  name: string;
-  initialValue: number;
-  handler: THandler<number>;
-  avaible: TAvaible<number>;
-  next?: IDate;
-}
-
-const buildBinder = <T>(state: { [name: string]: T }) => (name: string, action: THandler<T> | TAvaible<T>) =>
-  (initialValue: T) =>
-    action(name in state ? state[name] : initialValue);
-
-type TBinder<T> = (name: string, action: THandler<T> | TAvaible<T>) => (initialValue: T) => T;
-
-const buildTree = (date: IDate, bind: TBinder<any>): IIterable<any> => {
-  const next = date.next ? buildTree(date.next, bind) : undefined;
-  return toIterable(
-    date.name,
-    date.initialValue,
-    0,
-    bind(date.name, date.handler),
-    bind(date.name, date.avaible),
-    next,
-  );
-};
-
-export default function* dateTime (begin: Date, end: Date, constraints: IConstraints): TValue<number> {
-  const { year, month, day, hours, minutes } = toDate(begin);
-  const endDate = toDate(end);
-
-  const state: { [name: string]: any } = { };
-  const binder = buildBinder(state);
-
-  const inc = (val: number) => ++val;
-  const lim = (limit: number) => (val: number) => val < limit;
-
-  const date: IDate = {
-    name: 'year',
-    initialValue: year,
-    handler: inc,
-    avaible: lim(Number.MAX_VALUE),
-    next: {
-      name: 'month',
-      initialValue: month,
-      handler: inc,
-      avaible: lim(12),
-      next: {
-        name: 'date',
-        initialValue: day,
-        handler: inc,
-        avaible: (val) => val < getMonthLength(state.year, state.month),
-        next: {
-          name: 'hour',
-          initialValue: hours,
-          handler: inc,
-          avaible: lim(24),
-          next: {
-            name: 'minute',
-            initialValue: minutes,
-            handler: inc,
-            avaible: lim(60),
-          },
-        },
-      },
-    },
-  };
-
-  const tree = buildTree(date, binder);
-
+export default (date: Date, available: (value: IDateTime) => boolean, step: number) => {
+  const iterator = handle(iterable, ({ minute, ...rest }) => ({ minute: minute + step, ...rest }))
+  return iterator(toDateTime(date), available)
 }

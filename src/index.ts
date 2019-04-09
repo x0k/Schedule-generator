@@ -1,4 +1,4 @@
-import { Loader } from './loader';
-import * as Grouper from './grouper';
+import { Loader } from './loader'
+import * as Grouper from './grouper'
 
-export { Loader, Grouper };
+export { Loader, Grouper }

@@ -1,24 +1,24 @@
-import { deepEqual } from 'fast-equals';
-import { DateTime, IConstraints } from './core/dateTime';
-import { IRuleData, Rule } from './core/rule';
-import { Interpreter } from './core/interpreter';
+import { deepEqual } from 'fast-equals'
+import dateTime, { IDateTime } from './core/dateTime'
+import { Rule } from './core/rule'
+import { ISchedule, IConstraints, IRuleData } from './core/schedule'
+import { Interpreter } from './core/interpreter'
 
 type RuleTree = Map<string, IRuleTree>;
 interface IRuleTree extends Map<string, RuleTree> { }
 
 const getPaths = (identifiers: Set<string>, tree: IRuleTree) => {
-  const result = new Map();
+  const result = new Map()
   for (const [id, value] of tree) {
-    const childrens = value.size ? getPaths(identifiers, value) : new Map();
+    const childrens = value.size ? getPaths(identifiers, value) : new Map()
     if (identifiers.has(id) || childrens.size) {
-      result.set(id, childrens);
+      result.set(id, childrens)
     }
   }
-  return result;
-};
+  return result
+}
 
 export class Generator {
-
   public out: any[] = [];
   private rules: { [id: string]: Rule } = {};
   private values: { [id: string]: any } = {};
@@ -33,99 +33,98 @@ export class Generator {
     { id: 'week', handler: () => this.values.dateTime.get('week'), require: new Set() },
     { id: 'day', handler: () => this.values.dateTime.get('day'), require: new Set() },
     { id: 'hour', handler: () => this.values.dateTime.get('hour'), require: new Set() },
-    { id: 'minute', handler: () => this.values.dateTime.get('minute'), require: new Set() },
+    { id: 'minute', handler: () => this.values.dateTime.get('minute'), require: new Set() }
   ];
 
-  constructor (rules: IRuleData[], constraints: IConstraints) {
+  public constructor (schedule: ISchedule) {
     for (const rule of this.initialRules) {
-      this.rules[rule.id] = rule;
-      this.tree.set(rule.id, new Map());
+      this.rules[rule.id] = rule
+      this.tree.set(rule.id, new Map())
     }
-    for (const rule of rules) {
-      this.addRule(rule);
+    for (const rule of schedule.rules) {
+      this.addRule(rule)
     }
-    this.constraints = constraints;
+    this.constraints = schedule.constraints
   }
 
   public hasRule (id: string) {
-    return id in this.rules;
+    return id in this.rules
   }
 
   public getRule (id: string) {
-    return this.rules[id];
+    return this.rules[id]
   }
 
   public addRule (data: IRuleData) {
-    const rule = new Rule(data, this.interpreter);
+    const rule = new Rule(data, this.interpreter)
     if (this.hasRule(rule.id)) {
-      throw new Error(`Rule ${rule.id} are exist`);
+      throw new Error(`Rule ${rule.id} are exist`)
     }
-    let paths = rule.require.size ? getPaths(rule.require, this.tree) : new Map();
-    let parent = this.tree;
-    let init = true;
+    let paths = rule.require.size ? getPaths(rule.require, this.tree) : new Map()
+    let parent = this.tree
+    let init = true
     while ((paths.size === 1 || paths.size > 1) && init) {
-      init = false;
-      const last = Array.from(paths.keys()).pop();
-      paths = paths.get(last);
-      const p = parent.get(last);
+      init = false
+      const last = Array.from(paths.keys()).pop()
+      paths = paths.get(last)
+      const p = parent.get(last)
       if (!p) {
-        throw new Error(`Parent ${last} doesn't exist`);
+        throw new Error(`Parent ${last} doesn't exist`)
       }
-      parent = p;
+      parent = p
     }
-    parent.set(rule.id, new Map());
-    this.rules[rule.id] = rule;
-    return rule;
+    parent.set(rule.id, new Map())
+    this.rules[rule.id] = rule
+    return rule
   }
 
-  public getRuleListners (id: string) {
+  public getRuleListeners (id: string) {
     const find = (tree: IRuleTree): IRuleTree | false => {
       if (tree.has(id)) {
-        const ls = tree.get(id);
+        const ls = tree.get(id)
         if (!ls) {
-          throw new Error(`Listner of ${id} are undefined`);
+          throw new Error(`Listener of ${id} are undefined`)
         }
-        return ls;
+        return ls
       }
       for (const value of tree.values()) {
         if (value.size > 0) {
-          const result = find(value);
+          const result = find(value)
           if (result) {
-            return result;
+            return result
           }
         }
       }
-      return false;
-    };
-    return find(this.tree);
+      return false
+    }
+    return find(this.tree)
   }
 
   public emit = (ruleId: string) => {
-    const raise = (id: string, listners: IRuleTree | false) => {
-      const rule = this.getRule(id);
-      const value = rule.handler();
+    const raise = (id: string, listeners: IRuleTree | false) => {
+      const rule = this.getRule(id)
+      const value = rule.handler()
       if (!deepEqual(this.values[id], value)) {
-        this.values[id] = value;
-        if (listners && listners.size) {
-          for (const [listnerId, listnerListners] of listners) {
-            raise(listnerId, listnerListners);
+        this.values[id] = value
+        if (listeners && listeners.size) {
+          for (const [listenerId, listenerListeners] of listeners) {
+            raise(listenerId, listenerListeners)
           }
         }
       }
-    };
-    raise(ruleId, this.getRuleListners(ruleId));
+    }
+    raise(ruleId, this.getRuleListeners(ruleId))
   }
 
   public async run (begin: Date, end: Date) {
-    const dateTime = new DateTime(begin, end, this.constraints);
-    this.values.dateTime = dateTime;
-    for (const rule of this.initialRules) {
-      this.emit(rule.id);
+    const condition = ({ year, month, day, hour, minute }: IDateTime) => year < end.getFullYear() ||
+      month < end.getMonth() ||
+      day < end.getDate() ||
+      hour < end.getHours() ||
+      minute <= end.getMinutes()
+    for (const event of dateTime(begin, condition, 10)) {
+      this.emit()
     }
-    while (dateTime.avaible) {
-      dateTime.next(this.emit, 'minute');
-    }
-    return this.out;
+    return this.out
   }
-
 }
