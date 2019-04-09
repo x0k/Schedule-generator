@@ -1,6 +1,5 @@
 import {
-  buildIterable,
-  handle,
+  decorate,
   wrap
 } from 'iterator-wrapper'
 
@@ -10,32 +9,60 @@ import {
   IDateTime
 } from './dateHelper'
 
+export interface Steps {
+  minute: number
+  hour: number
+  day: number
+  month: number
+  year: number
+}
+
 export * from './dateHelper'
 
-const years = buildIterable<IDateTime>((): boolean => true)
-const months = buildIterable<IDateTime>(({ month }): boolean => month < 12)
-const days = buildIterable<IDateTime>(({ year, month, day }): boolean => day < getMonthLength(year, month))
-const hours = buildIterable<IDateTime>(({ hour }): boolean => hour < 24)
-const minutes = buildIterable<IDateTime>(({ minute }): boolean => minute < 60)
+const iterable = (key: string, lim: number, step: number = 1) => function * (value: number, date: any) {
+  while (value < lim) {
+    yield { [key]: value, ...date }
+    value += step
+  }
+  return value % lim
+}
 
-const iterable = wrap(
-  wrap(
-    wrap(
-      wrap(years, months, ({ year, month, ...rest }) => ({ year: year + Math.floor(month / 12), month: month % 12, ...rest })),
-      days,
-      ({ year, month, day, ...rest }) => {
-        const len = getMonthLength(year, month)
-        return { year, month: month + Math.floor(day / len), day: day % len, ...rest }
-      }
+export default (begin: Date, end: Date, steps: IDateTime) => {
+  const condition = ({ year, month, day, hour, minute }: IDateTime) => year < end.getFullYear() ||
+    month < end.getMonth() ||
+    day < end.getDate() ||
+    hour < end.getHours() ||
+    minute <= end.getMinutes()
+  const years = iterable('year', 4000, steps.year)
+  const months = iterable('month', 12, steps.month)
+  function * days (value: number, date: any) {
+    const { year, month, ...rest } = date
+    const len = getMonthLength(year, month)
+    while (value < len) {
+      yield { year, month, day: value, ...rest }
+      value += steps.day
+    }
+    return value % len
+  }
+  const hours = iterable('hour', 24, steps.hour)
+  const minutes = iterable('minute', 60, steps.minute)
+  const from = toDateTime(begin)
+  const period = decorate<IDateTime>(
+    decorate<IDateTime>(
+      decorate<IDateTime>(
+        decorate<IDateTime>(
+          years(from.year, {}),
+          months,
+          from.month
+        ),
+        days,
+        from.day
+      ),
+      hours,
+      from.hour
     ),
-    hours,
-    ({ day, hour, ...rest }) => ({ day: day + Math.floor(hour / 24), hour: hour % 24, ...rest })
-  ),
-  minutes,
-  ({ hour, minute, ...rest }) => ({ hour: hour + Math.floor(minute / 60), minute: minute % 60, ...rest })
-)
-
-export default (date: Date, available: (value: IDateTime) => boolean, step: number) => {
-  const iterator = handle(iterable, ({ minute, ...rest }) => ({ minute: minute + step, ...rest }))
-  return iterator(toDateTime(date), available)
+    minutes,
+    from.minute
+  )
+  return wrap<IDateTime>(period, condition)
 }

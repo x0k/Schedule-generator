@@ -1,7 +1,9 @@
-import { IConstraints } from './core/dateTime'
 import { Generator } from './generator'
-import { ISchedule } from './core/schedule'
-import { IRuleData } from './core/rule'
+import {
+  ISchedule,
+  IConstraints,
+  IRuleData
+} from './core/schedule'
 
 export class Loader {
   private constraints: IConstraints = {};

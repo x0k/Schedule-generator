@@ -1,7 +1,7 @@
 import { deepEqual } from 'fast-equals'
-import dateTime, { IDateTime } from './core/dateTime'
+import dateTime from './core/dateTime'
 import { Rule } from './core/rule'
-import { ISchedule, IConstraints, IRuleData } from './core/schedule'
+import { IConstraints, IRuleData } from './core/schedule'
 import { Interpreter } from './core/interpreter'
 
 type RuleTree = Map<string, IRuleTree>;
@@ -36,15 +36,15 @@ export class Generator {
     { id: 'minute', handler: () => this.values.dateTime.get('minute'), require: new Set() }
   ];
 
-  public constructor (schedule: ISchedule) {
+  public constructor (rules: IRuleData[], constraints: IConstraints) {
     for (const rule of this.initialRules) {
       this.rules[rule.id] = rule
       this.tree.set(rule.id, new Map())
     }
-    for (const rule of schedule.rules) {
+    for (const rule of rules) {
       this.addRule(rule)
     }
-    this.constraints = schedule.constraints
+    this.constraints = constraints
   }
 
   public hasRule (id: string) {
@@ -117,12 +117,7 @@ export class Generator {
   }
 
   public async run (begin: Date, end: Date) {
-    const condition = ({ year, month, day, hour, minute }: IDateTime) => year < end.getFullYear() ||
-      month < end.getMonth() ||
-      day < end.getDate() ||
-      hour < end.getHours() ||
-      minute <= end.getMinutes()
-    for (const event of dateTime(begin, condition, 10)) {
+    for (const event of dateTime(begin, end, this.constraints)) {
       this.emit()
     }
     return this.out
