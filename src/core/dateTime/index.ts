@@ -16,15 +16,6 @@ interface Dictionary {
   [key: string]: number
 }
 
-const iterable = <T extends D, D extends Dictionary>(key: string, lim: number, step: number = 1) => function * (initialValue: T, date: D) {
-  let value = initialValue[key]
-  while (value < lim) {
-    yield { ...initialValue, [key]: value, ...date }
-    value += step
-  }
-  return { ...initialValue, [key]: value % lim, ...date }
-}
-
 interface Years extends Dictionary {
   year: number
 }
@@ -62,28 +53,37 @@ export default (begin: Date, end: Date, steps: Minutes) => {
     minute <= end.getMinutes()
   function * years ({ year }: Years) {
     while (true) {
-      let data: Years = { year: year++ }
-      yield data
+      yield { year: year++ }
     }
   }
-  const months = iterable<Months, Years>('month', 12, steps.month)
-  function * days (initialValue: Days, date: Months) {
-    const { year, month } = date
+  function * months ({ month }: Months, { year }: Years) {
+    while (month < 12) {
+      yield { month: month++, year }
+    }
+    return { month: month % 12, year }
+  }
+  function * days ({ day }: Days, { month, year }: Months) {
     const len = getMonthLength(year, month)
-    let value = initialValue.day
-    while (value < len) {
-      let data: Days = { day: value, ...date }
-      yield data
-      value += steps.day
+    while (day < len) {
+      yield { day: day++, month, year }
     }
-    let result: Days = { day: value % len, ...date }
-    return result
+    return { day: day % len, month, year }
   }
-  const hours = iterable<Hours, Days>('hour', 24, steps.hour)
-  const minutes = iterable<Minutes, Hours>('minute', 60, steps.minute)
+  function * hours ({ hour }: Hours, date: Days) {
+    while (hour < 24) {
+      yield { hour: hour++, ...date }
+    }
+    return { hour: hour % 60, ...date }
+  }
+  function * minutes ({ minute }: Minutes, date: Hours) {
+    while (minute < 60) {
+      yield { minute: minute++, ...date }
+    }
+    return { minute: minute % 60, ...date }
+  }
   const from = toMinutes(begin)
 
-  const period = wrap<Minutes>(
+  const period = wrap(
     decorate<Hours, Minutes>(
       decorate<Days, Hours>(
         decorate<Months, Days>(
