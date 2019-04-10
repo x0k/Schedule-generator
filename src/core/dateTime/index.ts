@@ -1,13 +1,6 @@
-import {
-  decorate,
-  wrap
-} from 'iterator-wrapper'
+import { decorate, wrap } from 'iterator-wrapper'
 
-import {
-  getMonthLength,
-  toDateTime,
-  IDateTime
-} from './dateHelper'
+import { getMonthLength } from './dateHelper'
 
 export interface Steps {
   minute: number
@@ -19,50 +12,92 @@ export interface Steps {
 
 export * from './dateHelper'
 
-const iterable = (key: string, lim: number, step: number = 1) => function * (value: number, date: any) {
-  while (value < lim) {
-    yield { [key]: value, ...date }
-    value += step
-  }
-  return value % lim
+interface Dictionary {
+  [key: string]: number
 }
 
-export default (begin: Date, end: Date, steps: IDateTime) => {
-  const condition = ({ year, month, day, hour, minute }: IDateTime) => year < end.getFullYear() ||
+const iterable = <T extends D, D extends Dictionary>(key: string, lim: number, step: number = 1) => function * (initialValue: T, date: D) {
+  let value = initialValue[key]
+  while (value < lim) {
+    yield { ...initialValue, [key]: value, ...date }
+    value += step
+  }
+  return { ...initialValue, [key]: value % lim, ...date }
+}
+
+interface Years extends Dictionary {
+  year: number
+}
+interface Months extends Years {
+  month: number
+}
+
+interface Days extends Months {
+  day: number
+}
+
+interface Hours extends Days {
+  hour: number
+}
+
+export interface Minutes extends Hours {
+  minute: number
+}
+
+function toMinutes (date: Date): Minutes {
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth(),
+    day: date.getDate(),
+    hour: date.getHours(),
+    minute: date.getMinutes()
+  }
+}
+
+export default (begin: Date, end: Date, steps: Minutes) => {
+  const condition = ({ year, month, day, hour, minute }: Minutes) => year < end.getFullYear() ||
     month < end.getMonth() ||
     day < end.getDate() ||
     hour < end.getHours() ||
     minute <= end.getMinutes()
-  const years = iterable('year', 4000, steps.year)
-  const months = iterable('month', 12, steps.month)
-  function * days (value: number, date: any) {
-    const { year, month, ...rest } = date
+  function * years ({ year }: Years) {
+    while (true) {
+      let data: Years = { year: year++ }
+      yield data
+    }
+  }
+  const months = iterable<Months, Years>('month', 12, steps.month)
+  function * days (initialValue: Days, date: Months) {
+    const { year, month } = date
     const len = getMonthLength(year, month)
+    let value = initialValue.day
     while (value < len) {
-      yield { year, month, day: value, ...rest }
+      let data: Days = { day: value, ...date }
+      yield data
       value += steps.day
     }
-    return value % len
+    let result: Days = { day: value % len, ...date }
+    return result
   }
-  const hours = iterable('hour', 24, steps.hour)
-  const minutes = iterable('minute', 60, steps.minute)
-  const from = toDateTime(begin)
-  const period = decorate<IDateTime>(
-    decorate<IDateTime>(
-      decorate<IDateTime>(
-        decorate<IDateTime>(
-          years(from.year, {}),
-          months,
-          from.month
+  const hours = iterable<Hours, Days>('hour', 24, steps.hour)
+  const minutes = iterable<Minutes, Hours>('minute', 60, steps.minute)
+  const from = toMinutes(begin)
+
+  const period = wrap<Minutes>(
+    decorate<Hours, Minutes>(
+      decorate<Days, Hours>(
+        decorate<Months, Days>(
+          decorate<Years, Months>(
+            years,
+            months
+          ),
+          days
         ),
-        days,
-        from.day
+        hours
       ),
-      hours,
-      from.hour
+      minutes
     ),
-    minutes,
-    from.minute
+    condition
   )
-  return wrap<IDateTime>(period, condition)
+  return period(from)
 }
