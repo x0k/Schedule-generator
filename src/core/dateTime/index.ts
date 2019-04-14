@@ -1,4 +1,4 @@
-import { wrap, restrict, wrapper } from 'iterator-wrapper'
+import { wrap, restrict } from 'iterator-wrapper'
 
 import { getMonthLength } from './dateHelper'
 
@@ -77,7 +77,7 @@ export default (begin: Date, end: Date, steps: Minutes) => {
     }
     return value % 12
   }
-  const days: wrapper<Months | number, number, Days> = function * (value, data) {
+  function * days (value: number, data: Months | number) {
     if (!isMonths(data)) {
       throw new Error('Type error')
     }
@@ -88,7 +88,7 @@ export default (begin: Date, end: Date, steps: Minutes) => {
     }
     return value % len
   }
-  const hours: wrapper<Days | number, number, Hours> = function * (value, data) {
+  function * hours (value: number, data: Days | number) {
     if (typeof data !== 'object') {
       throw new Error('Type error')
     }
@@ -97,7 +97,7 @@ export default (begin: Date, end: Date, steps: Minutes) => {
     }
     return value % 24
   }
-  const minutes: wrapper<Hours | number, number, Minutes> = function * (value, data) {
+  function * minutes (value: number, data: Hours | number) {
     if (typeof data !== 'object') {
       throw new Error('Type error')
     }
