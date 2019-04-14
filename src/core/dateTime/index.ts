@@ -1,4 +1,4 @@
-import { decorate, wrap } from 'iterator-wrapper'
+import { wrap, restrict, wrapper } from 'iterator-wrapper'
 
 import { getMonthLength } from './dateHelper'
 
@@ -45,59 +45,87 @@ function toMinutes (date: Date): Minutes {
   }
 }
 
+const isMonths = (date: number | Months): date is Months =>
+  typeof date === 'object' &&
+  typeof date.month === 'number' &&
+  typeof date.year === 'number'
+
+const isMinutes = (date: number | Minutes): date is Minutes =>
+  typeof date === 'object' &&
+  typeof date.minute === 'number' &&
+  typeof date.hour === 'number' &&
+  typeof date.day === 'number' &&
+  typeof date.month === 'number' &&
+  typeof date.year === 'number'
+
 export default (begin: Date, end: Date, steps: Minutes) => {
-  const condition = ({ year, month, day, hour, minute }: Minutes) => year < end.getFullYear() ||
-    month < end.getMonth() ||
-    day < end.getDate() ||
-    hour < end.getHours() ||
-    minute <= end.getMinutes()
-  function * years ({ year }: Years) {
+  const condition = (date: Minutes | number) => isMinutes(date) && (
+    date.year < end.getFullYear() ||
+    date.month < end.getMonth() ||
+    date.day < end.getDate() ||
+    date.hour < end.getHours() ||
+    date.minute <= end.getMinutes()
+  )
+  function * years (value: number) {
     while (true) {
-      yield { year: year++ }
+      yield { year: value++ }
     }
   }
-  function * months ({ month }: Months, { year }: Years) {
-    while (month < 12) {
-      yield { month: month++, year }
+  function * months (value: number, { year }: Years) {
+    while (value < 12) {
+      yield { month: value++, year }
     }
-    return { month: month % 12, year }
+    return value % 12
   }
-  function * days ({ day }: Days, { month, year }: Months) {
+  const days: wrapper<Months | number, number, Days> = function * (value, data) {
+    if (!isMonths(data)) {
+      throw new Error('Type error')
+    }
+    const { year, month } = data
     const len = getMonthLength(year, month)
-    while (day < len) {
-      yield { day: day++, month, year }
+    while (value < len) {
+      yield { day: value++, month, year }
     }
-    return { day: day % len, month, year }
+    return value % len
   }
-  function * hours ({ hour }: Hours, date: Days) {
-    while (hour < 24) {
-      yield { hour: hour++, ...date }
+  const hours: wrapper<Days | number, number, Hours> = function * (value, data) {
+    if (typeof data !== 'object') {
+      throw new Error('Type error')
     }
-    return { hour: hour % 60, ...date }
+    while (value < 24) {
+      yield { hour: value++, ...data }
+    }
+    return value % 24
   }
-  function * minutes ({ minute }: Minutes, date: Hours) {
-    while (minute < 60) {
-      yield { minute: minute++, ...date }
+  const minutes: wrapper<Hours | number, number, Minutes> = function * (value, data) {
+    if (typeof data !== 'object') {
+      throw new Error('Type error')
     }
-    return { minute: minute % 60, ...date }
+    while (value < 60) {
+      yield { minute: value++, ...data }
+    }
+    return value % 60
   }
   const from = toMinutes(begin)
 
-  const period = wrap(
-    decorate<Hours, Minutes>(
-      decorate<Days, Hours>(
-        decorate<Months, Days>(
-          decorate<Years, Months>(
-            years,
-            months
+  return restrict<Minutes | number>(
+    wrap<Hours | number, number, Minutes>(
+      wrap<Days | number, number, Hours>(
+        wrap<Months | number, number, Days>(
+          wrap<Years, number, Months>(
+            years(from.year),
+            months,
+            from.month
           ),
-          days
+          days,
+          from.day
         ),
-        hours
+        hours,
+        from.hour
       ),
-      minutes
+      minutes,
+      from.minute
     ),
     condition
   )
-  return period(from)
 }

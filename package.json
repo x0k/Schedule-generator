@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "fast-equals": "^1.6.1",
-    "iterator-wrapper": "0.3",
+    "iterator-wrapper": "0.4",
     "rule-interpreter": "0.2"
   },
   "name": "schedule-core",
